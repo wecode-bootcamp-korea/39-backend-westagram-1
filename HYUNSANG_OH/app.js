@@ -2,11 +2,11 @@ const http = require("http");
 const express = require("express");
 const cors = require ("cors");
 const morgan = require ("morgan");
-const dotenv = require ("dotenv");
-const { DataSource } = require('typeorm');
 
+const dotenv = require ("dotenv");
 dotenv.config()
 
+const { DataSource } = require('typeorm');
 
 const myDataSource = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
@@ -27,8 +27,7 @@ app.use(express.json());
 app.use(cors());   
 app.use(morgan('dev'));
 
-dotenv.config();
-
+//health check
 app.get("/ping", (req,res) => {
     res.json({message : "pong"});
 })
