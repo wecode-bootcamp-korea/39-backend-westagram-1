@@ -1,3 +1,6 @@
+.env
+node_modules/
+
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,vim,webstorm,macos,linux,windows,zsh,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,vim,webstorm,macos,linux,windows,zsh,node
 
@@ -398,6 +401,3 @@ zsdoc/data
 !/tests/_output/.gitkeep
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,vim,webstorm,macos,linux,windows,zsh,node
-
-# database schema.sql file
-schema.sql
