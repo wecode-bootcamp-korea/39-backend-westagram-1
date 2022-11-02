@@ -7,7 +7,7 @@ const { DataSource } = require('typeorm');
 
 dotenv.config()
 
-const myDataSource = new DataSource({
+const my_data_source = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
     host: process.env.TYPEORM_HOST,
     port: process.env.TYPEORM_PORT,
@@ -16,7 +16,7 @@ const myDataSource = new DataSource({
     database: process.env.TYPEORM_DATABASE
 })
 
-myDataSource.initialize()
+my_data_source.initialize()
     .then(() => {
         console.log("DataSource has been initialized!")
     })
@@ -32,15 +32,15 @@ app.get("/ping", (req,res) => {
 })
 
 app.post("/signup", async (req,res,next) => {
-    const {name, email, password,profileImage} = req.body;
-    await myDataSource.query(
+    const {name, email, password,profile_image} = req.body;
+        await my_data_source.query(
         `INSERT INTO users(
-            userName,
+            user_name,
             email,
-            userPassword,
+            user_password,
             profile_image
         ) VALUES (?, ?, ?, ?);`,
-        [name, email, password, profileImage]
+        [name, email, password, profile_image]
     );
     res.status(201).json({message : "userCreated"});
 })
