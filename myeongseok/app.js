@@ -4,7 +4,6 @@ const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
 
-// TypeORM-DB연결
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -21,18 +20,32 @@ const myDataSource = new DataSource({
 
 myDataSource.initialize().then(() => {
   console.log('Data Source has been initialized!');
-}); // promise 객체 사용
+});
 
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// heatlh check
 app.get('/ping', (req, res, next) => {
   res.json({ message: 'pong' });
 });
 
-// 서버 연결
+app.post('/users/signup', (req, res, next) => {
+  const { name, email, profile_image, password } = req.body;
+
+  myDataSource.query(
+    `INSERT INTO users(
+      name,
+      email,
+      profile_image,
+      password
+    ) VALUES (?, ?, ?, ?);
+    `,
+    [name, email, profile_image, password]
+  );
+  res.status(201).json({ message: 'userCreated' });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
