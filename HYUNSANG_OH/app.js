@@ -7,7 +7,7 @@ const { DataSource } = require('typeorm');
 
 dotenv.config()
 
-const my_data_source = new DataSource({
+const appDataSource = new DataSource({
     type: process.env.TYPEORM_CONNECTION,
     host: process.env.TYPEORM_HOST,
     port: process.env.TYPEORM_PORT,
@@ -16,10 +16,15 @@ const my_data_source = new DataSource({
     database: process.env.TYPEORM_DATABASE
 })
 
-my_data_source.initialize()
+appDataSource.initialize()
+
     .then(() => {
-        console.log("DataSource has been initialized!")
+        console.log("Data Source has been initialized!")
     })
+    .catch((err) => {
+        console.error("Error during Data Source initialization", err)
+    })
+
 
 app = express()
 app.use(express.json()); 
@@ -33,7 +38,7 @@ app.get("/ping", (req,res) => {
 
 app.post("/signup", async (req,res,next) => {
     const {name, email, password,profile_image} = req.body;
-        await my_data_source.query(
+        await appDataSource.query(
         `INSERT INTO users(
             user_name,
             email,
