@@ -24,9 +24,6 @@ appDataSource.initialize()
     .catch((err) => {
         console.error("Error during Data Source initialization", err)
     })
-    .catch((err) => {
-        console.error("Error during Data Source initialization", err)
-    })
 
 
 
@@ -54,7 +51,7 @@ app.post("/signup", async (req,res,next) => {
         res.status(201).json({message : "userCreated"});
 })
 
-app.post("/make_post", async (req,res,next) =>{
+app.post("/post", async (req,res,next) =>{
     const {title, content, image_url, user_id} = req.body;
         await appDataSource.query(
             `INSERT INTO posts(
