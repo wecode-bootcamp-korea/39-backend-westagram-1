@@ -25,10 +25,12 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 
+// 테스트
 app.get("/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
+// 회원가입
 app.post("/join", async (req, res) => {
   const { name, password, email } = req.body;
 
@@ -44,6 +46,7 @@ app.post("/join", async (req, res) => {
   res.status(201).json({ message: "user created" });
 });
 
+// 글 등록
 app.post("/post", async (req, res) => {
   const { title, content, user_id } = req.body;
 
@@ -59,6 +62,7 @@ app.post("/post", async (req, res) => {
   res.status(201).json({ message: "postCreated" });
 });
 
+// 글 보기
 app.get("/post/view", async (req, res) => {
   await myDataSource.query(
     `SELECT
@@ -75,24 +79,31 @@ app.get("/post/view", async (req, res) => {
   );
 });
 
+// 유저가 작성한 글 보기
 app.get("/user/view", async (req, res) => {
-  const userInfo = await myDataSource.query(
-    `SELECT
-      users.id AS userId,
-      users.userProfileImage
-    FROM users`
-  );
+  try {
+    const { user_id } = req.body;
+    const userInfo = await myDataSource.query(
+      `SELECT
+        users.id AS userId,
+        users.userProfileImage
+      FROM users
+      WHERE users.id=${user_id}`
+    );
 
-  const posting = await myDataSource.query(
-    `SELECT
-      posts.id AS postingId,
-      posts.imageUrl AS postingImageUrl,
-      posts.content AS postingContent
-    FROM posts, users
-    WHERE posts.user_id=users.id`
-  );
-  userInfo[0]["postings"] = posting;
-  res.status(200).json({ data: userInfo });
+    const posting = await myDataSource.query(
+      `SELECT
+        posts.id AS postingId,
+        posts.imageUrl AS postingImageUrl,
+        posts.content AS postingContent
+      FROM posts, users
+      WHERE posts.user_id=users.id`
+    );
+    userInfo[0]["postings"] = posting;
+    res.status(200).json({ data: userInfo });
+  } catch (err) {
+    console.log("error: " + err);
+  }
 });
 
 const server = http.createServer(app);
