@@ -26,6 +26,7 @@ appDataSource.initialize()
     })
 
 
+
 app = express()
 app.use(express.json()); 
 app.use(cors());   
@@ -39,17 +40,30 @@ app.get("/ping", (req,res) => {
 app.post("/signup", async (req,res,next) => {
     const {name, email, password,profile_image} = req.body;
         await appDataSource.query(
-        `INSERT INTO users(
-            user_name,
-            email,
-            user_password,
-            profile_image
-        ) VALUES (?, ?, ?, ?);`,
-        [name, email, password, profile_image]
-    );
-    res.status(201).json({message : "userCreated"});
+            `INSERT INTO users(
+                user_name,
+                email,
+                user_password,
+                profile_image
+            ) VALUES (?, ?, ?, ?);`,
+            [name, email, password, profile_image]
+        );
+        res.status(201).json({message : "userCreated"});
 })
 
+app.post("/post", async (req,res,next) =>{
+    const {title, content, image_url, user_id} = req.body;
+        await appDataSource.query(
+            `INSERT INTO posts(
+                title,
+                content,
+                image_url,
+                user_id
+            ) VALUES (?, ?, ?, ?);`,
+            [title, content, image_url, user_id]
+        );
+        res.status(201).json({message : "postCreated"});
+})
 
 const server = http.createServer(app);
 const PORT = process.env.PORT;
