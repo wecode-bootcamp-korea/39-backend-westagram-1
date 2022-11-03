@@ -79,12 +79,20 @@ app.get("/user/view", async (req, res) => {
   const userInfo = await myDataSource.query(
     `SELECT
       users.id AS userId,
-      users.userProfileImage,
-    FROM users
-    WHERE users.id=1
-    `
+      users.userProfileImage
+    FROM users`
   );
-  res.status(200).json({ data: userInfo.rows });
+
+  const posting = await myDataSource.query(
+    `SELECT
+      posts.id AS postingId,
+      posts.imageUrl AS postingImageUrl,
+      posts.content AS postingContent
+    FROM posts, users
+    WHERE posts.user_id=users.id`
+  );
+  userInfo[0]["postings"] = posting;
+  res.status(200).json({ data: userInfo });
 });
 
 const server = http.createServer(app);
