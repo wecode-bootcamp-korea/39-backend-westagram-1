@@ -29,19 +29,21 @@ app.get("/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
-app.post("/join", async (req, res) => {
-  const { name, password, email } = req.body;
+app.post("/post", async (req, res) => {
+  const { title, content, user_id } = req.body;
 
   await myDataSource.query(
-    `INSERT INTO users(
-      name,
-      password,
-      email
+    `INSERT INTO posts(
+      title,
+      content,
+      user_id
     ) VALUES (?, ?, ?);
     `,
-    [name, password, email]
+    [title, content, user_id]
   );
-  res.status(201).json({ message: "user created" });
+
+  res.status(201).json({ message: "postCreated" });
+
 });
 
 const server = http.createServer(app);
