@@ -78,6 +78,24 @@ app.get('/users/:id', (req, res) => {
   );
 });
 
+app.get('/posts', (req, res, next) => {
+  myDataSource.query(
+    `SELECT
+        users.id as userId,
+        users.profile_image as userProfileImage,
+        posts.id as postingId,
+        posts.post_image as postingImageUrl,
+        posts.content as postingContent
+      FROM posts
+      INNER JOIN users ON posts.user_id = users.id`,
+    (err, rows) => {
+      res.status(200).json({
+        data: rows,
+      });
+    }
+  );
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
