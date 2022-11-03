@@ -30,6 +30,22 @@ app.get('/ping', (req, res, next) => {
   res.json({ message: 'pong' });
 });
 
+app.post('/users/signup', (req, res, next) => {
+  const { name, email, profile_image, password } = req.body;
+
+  myDataSource.query(
+    `INSERT INTO users(
+      name,
+      email,
+      profile_image,
+      password
+    ) VALUES (?, ?, ?, ?);
+    `,
+    [name, email, profile_image, password]
+  );
+  res.status(201).json({ message: 'userCreated' });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
