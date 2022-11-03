@@ -41,10 +41,10 @@ app.post("/join", async (req, res) => {
     `,
     [name, password, email]
   );
-  res.status(200).json({ message: "user created" });
+  res.status(201).json({ message: "user created" });
 });
 
-app.post("/upload", async (req, res) => {
+app.post("/post", async (req, res) => {
   const { title, content, user_id } = req.body;
 
   await myDataSource.query(
@@ -56,10 +56,10 @@ app.post("/upload", async (req, res) => {
     `,
     [title, content, user_id]
   );
-  res.status(200).json({ message: "postCreated" });
+  res.status(201).json({ message: "postCreated" });
 });
 
-app.get("/post_view", async (req, res) => {
+app.get("/post/view", async (req, res) => {
   await myDataSource.query(
     `SELECT
       posts.user_id AS userId,
@@ -75,12 +75,16 @@ app.get("/post_view", async (req, res) => {
   );
 });
 
-app.get("/user/post_view", async (req, res) => {
-  await myDataSource.query(
+app.get("/user/view", async (req, res) => {
+  const userInfo = await myDataSource.query(
     `SELECT
-      
+      users.id AS userId,
+      users.userProfileImage,
+    FROM users
+    WHERE users.id=1
     `
   );
+  res.status(200).json({ data: userInfo.rows });
 });
 
 const server = http.createServer(app);
