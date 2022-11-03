@@ -38,23 +38,38 @@ app.get("/ping", (req, res) => {
 
 
 app.post("/users/signup", async (req, res, next) => {
-    const { user_id, password, name, email, user_img } = req.body
+    const { userId, password, name, email, userImg } = req.body
     
     await myDataSource.query(
         `INSERT INTO users(
-            user_id,
+            userId,
             password,
             name,
             email,
-            user_img
+            userImg
             ) VALUES (?, ?, ?, ?, ?);
         `,
-        [ user_id, password, name, email, user_img ]
+        [ userId, password, name, email, userImg ]
     );
 
     res.status(201).json({ "message" : "userCreated!" });
 })
 
+app.post("/posts", async (req, res, next) => {
+    const { title, content, userId } = req.body
+
+    await myDataSource.query(
+        `INSERT INTO posts(
+            title,
+            content,
+            userId
+        ) VALUES (?, ?, ?);
+        `,
+        [ title, content, userId ]
+    );
+
+    res.status(201).json({ "message" : "postCreated!" });
+})
 
 
 const start = async () => {
