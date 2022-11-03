@@ -5,6 +5,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 dotenv.config();
 import { DataSource } from "typeorm";
+import { nextTick } from "process";
 
 const myDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -104,6 +105,31 @@ app.get("/user/view", async (req, res) => {
   } catch (err) {
     console.log("유저가 존재하지 않습니다.");
   }
+});
+
+// 특정 글 내용 수정
+app.patch("/post/update", async (req, res) => {
+  const { updatedContent } = req.body;
+
+  await myDataSource.query(
+    `UPDATE posts
+      SET content="${updatedContent}"
+      WHERE posts.id=1`
+  );
+
+  const showDB = await myDataSource.query(
+    `SELECT
+      users.id AS userId,
+      users.name AS userName,
+      posts.id AS postingId,
+      posts.title AS postingTitle,
+      posts.content AS postingContent
+    FROM users
+    INNER JOIN posts
+    ON users.id = posts.user_id`
+  );
+
+  res.status(201).json({ data: showDB });
 });
 
 const server = http.createServer(app);
