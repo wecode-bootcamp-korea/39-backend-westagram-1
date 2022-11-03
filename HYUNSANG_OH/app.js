@@ -36,6 +36,7 @@ app.get("/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
+//전체게시물 조회
 app.get("/allPosts", async (req, res) => {
   const posts = await appDataSource.query(
     `
@@ -52,6 +53,7 @@ app.get("/allPosts", async (req, res) => {
   res.status(200).json({ data: posts });
 });
 
+//특정 유저가 쓴 게시글 조회
 app.get("/userPost/:userId", async (req, res) => {
   const userId = req.params.userId;
   const user = await appDataSource.query(
@@ -78,6 +80,7 @@ app.get("/userPost/:userId", async (req, res) => {
   res.status(200).json({ data: result });
 });
 
+//회원가입
 app.post("/signup", async (req, res, next) => {
   const { name, email, password, profile_image } = req.body;
   await appDataSource.query(
@@ -94,6 +97,7 @@ app.post("/signup", async (req, res, next) => {
   res.status(201).json({ message: "userCreated" });
 });
 
+//게시글 작성
 app.post("/post", async (req, res, next) => {
   const { title, content, image_url, user_id } = req.body;
   await appDataSource.query(
@@ -110,15 +114,50 @@ app.post("/post", async (req, res, next) => {
   res.status(201).json({ message: "postCreated" });
 });
 
+//좋아요 누르기
+app.post("/likes", async (req, res, next) => {
+  const { userId, postId } = req.body;
+  const likes = await appDataSource.query(
+    `
+    SELECT
+        id,
+        user_id,
+        post_id
+    FROM likes
+    WHERE user_id = ${userId} and post_id =${postId}`
+  );
+  if (likes.id !== 0) {
+    await appDataSource.query(
+      `
+        INSERT INTO likes(
+            user_id,
+            post_id
+        ) VALUES (?,?);
+        `,
+      [userId, postId]
+    );
+    res.status(202).json({ message: "likeCreated" });
+  } else {
+    await appDataSource.query(
+      `
+        DELETE
+        FROM likes
+        WHERE user_id = ${userId} and post_id =${postId}`
+    );
+    res.status(202).json({ message: "likesDeleted" });
+  }
+});
+
+//게시글 수정
 app.patch("/update/:postId", async (req, res, next) => {
   const postId = req.params.postId;
   const { title, content, image_url } = req.body;
   await appDataSource.query(
     `
         UPDATE posts SET
-        title = ?,
-        content = ?,
-        image_url = ?
+            title = ?,
+            content = ?,
+            image_url = ?
         WHERE posts.id = ${postId}
         `,
     [title, content, image_url]
@@ -138,6 +177,7 @@ app.patch("/update/:postId", async (req, res, next) => {
   res.status(202).json({ data: editedPost });
 });
 
+//게시글 삭제
 app.delete("/delete/:userId", async (req, res, next) => {
   const userId = req.params.userId;
   const { postId } = req.body;
