@@ -102,7 +102,7 @@ app.get("/user/view", async (req, res) => {
     userInfo[0]["postings"] = posting;
     res.status(200).json({ data: userInfo });
   } catch (err) {
-    console.log("error: " + err);
+    console.log("유저가 존재하지 않습니다.");
   }
 });
 
