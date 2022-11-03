@@ -41,7 +41,9 @@ app.post("/post", async (req, res) => {
     `,
     [title, content, user_id]
   );
+
   res.status(201).json({ message: "postCreated" });
+
 });
 
 const server = http.createServer(app);
