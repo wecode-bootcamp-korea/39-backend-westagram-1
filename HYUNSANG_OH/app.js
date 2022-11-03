@@ -36,7 +36,7 @@ app.get("/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
-app.get("/allPosts", async (req, res) => {
+app.get("/posts", async (req, res) => {
   const posts = await appDataSource.query(
     `
     SELECT
