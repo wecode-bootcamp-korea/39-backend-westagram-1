@@ -113,6 +113,20 @@ app.post("/post", async (req, res, next) => {
   res.status(201).json({ message: "postCreated" });
 });
 
+app.delete("/delete/:userId", async (req, res, next) => {
+  const userId = req.params.userId;
+  const { postId } = req.body;
+  await appDataSource.query(
+    `
+        DELETE
+        FROM posts
+        WHERE posts.user_id = ${userId} and posts.id =${postId}
+    `,
+    [postId]
+  );
+  res.status(202).json({ message: "postingDeleted" });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
