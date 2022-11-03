@@ -61,6 +61,23 @@ app.post('/posts', (req, res, next) => {
   res.status(201).json({ message: 'postCreated' });
 });
 
+app.get('/users/:id', (req, res) => {
+  const { id } = req.params;
+  const user = myDataSource.query(
+    `SELECT
+  users.id as userID,
+  users.profile_image as userProfileImage,
+  posts.id as postingId,
+  posts.post_image as postingImageUrl,
+  posts.content as postingContent
+  FROM users, posts
+  WHERE users.id = ${id} and ${id} = posts.user_id`,
+    (err, data) => {
+      res.status(200).json({ data });
+    }
+  );
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
