@@ -39,17 +39,46 @@ app.get("/ping", (req, res) => {
 app.get("/allPosts", async (req, res) => {
   const posts = await appDataSource.query(
     `
-    SELECT
-        u.id as userId,
-        u.profile_image as userProfileImage,
-        p.user_id as postingId,
-        p.image_url as postingImageUrl,
-        p.content as postingContent
-    FROM users u
-    JOIN posts p ON u.id = p.user_id;
-    `
+        SELECT
+            u.id as userId,
+            u.profile_image as userProfileImage,
+            p.user_id as postingId,
+            p.image_url as postingImageUrl,
+            p.content as postingContent
+        FROM users u
+        JOIN posts p ON u.id = p.user_id;
+        `
   );
   res.status(200).json({ data: posts });
+});
+
+app.get("/userPost/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  console.log(userId);
+  const user = await appDataSource.query(
+    `
+        SELECT
+            users.id as userId,
+            users.profile_image as userProfileImage
+        FROM users
+        WHERE users.id = ${userId};
+        `
+  );
+  console.log(user);
+  const userPost = await appDataSource.query(
+    `
+        SELECT
+            posts.id as postingId,
+            posts.image_url as postingImageUrl,
+            posts.content as postingContent
+        FROM posts
+        WHERE posts.user_id = ${userId};
+        `
+  );
+  console.log(userPost);
+  user[0].posting = userPost;
+  const result = user[0];
+  res.status(200).json({ data: result });
 });
 
 app.post("/signup", async (req, res, next) => {
