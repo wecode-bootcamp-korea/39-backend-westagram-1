@@ -41,7 +41,7 @@ app.post("/join", async (req, res) => {
     `,
     [name, password, email]
   );
-  res.status(200).json({ message: "user created" });
+  res.status(201).json({ message: "user created" });
 });
 
 const server = http.createServer(app);
