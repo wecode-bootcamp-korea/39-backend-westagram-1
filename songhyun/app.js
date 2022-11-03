@@ -29,22 +29,7 @@ app.get("/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
-app.post("/join", async (req, res) => {
-  const { name, password, email } = req.body;
-
-  await myDataSource.query(
-    `INSERT INTO users(
-      name,
-      password,
-      email
-    ) VALUES (?, ?, ?);
-    `,
-    [name, password, email]
-  );
-  res.status(200).json({ message: "user created" });
-});
-
-app.post("/upload", async (req, res) => {
+app.post("/post", async (req, res) => {
   const { title, content, user_id } = req.body;
 
   await myDataSource.query(
@@ -56,7 +41,7 @@ app.post("/upload", async (req, res) => {
     `,
     [title, content, user_id]
   );
-  res.status(200).json({ message: "postCreated" });
+  res.status(201).json({ message: "postCreated" });
 });
 
 const server = http.createServer(app);
