@@ -37,6 +37,20 @@ app.get("/ping", (req,res) => {
     res.json({message : "pong"});
 })
 
+app.get("/allPosts", async (req,res) => {
+    const allPost = await appDataSource.query(
+        `SELECT
+        u.id as userId,
+        u.profile_image as userProfileImage,
+        p.user_id as postingId,
+        p.image_url as postingImageUrl,
+        p.content as postingContent
+        FROM users u, posts p
+        WHERE u.id = p.user_id;`
+    );
+    res.status(200).json({"data" : allPost});
+})
+
 app.post("/signup", async (req,res,next) => {
     const {name, email, password,profile_image} = req.body;
         await appDataSource.query(
