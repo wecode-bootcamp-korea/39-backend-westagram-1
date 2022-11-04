@@ -44,7 +44,6 @@ app.post("/join", async (req, res) => {
     [name, password, email]
   );
   res.status(201).json({ message: "user created" });
-});
 
 // 글 등록(과제3)
 app.post("/post", async (req, res) => {
