@@ -80,8 +80,6 @@ app.get('/users/:id', async (req, res) => {
   );
   user.posting = post;
   const userpost = user;
-  console.log(user);
-  console.log(typeof user);
   res.status(200).json(userpost);
 });
 
