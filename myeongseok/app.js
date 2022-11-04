@@ -61,21 +61,28 @@ app.post('/posts', (req, res, next) => {
   res.status(201).json({ message: 'postCreated' });
 });
 
-app.get('/users/:id', (req, res) => {
+app.get('/users/:id', async (req, res) => {
   const { id } = req.params;
-  const user = myDataSource.query(
+  const [user] = await myDataSource.query(
     `SELECT
   users.id as userID,
-  users.profile_image as userProfileImage,
-  posts.id as postingId,
-  posts.post_image as postingImageUrl,
-  posts.content as postingContent
-  FROM users, posts
-  WHERE users.id = ${id} and ${id} = posts.user_id`,
-    (err, data) => {
-      res.status(200).json({ data });
-    }
+  users.profile_image as userProfileImage
+  FROM users
+  WHERE users.id = ${id}`
   );
+  const post = await myDataSource.query(
+    `SELECT
+    posts.id as postingId,
+    posts.post_image as postingImageUrl,
+    posts.content as postingContent
+    FROM posts
+    WHERE posts.user_id = ${id}`
+  );
+  user.posting = post;
+  const userpost = user;
+  console.log(user);
+  console.log(typeof user);
+  res.status(200).json(userpost);
 });
 
 app.get('/posts', (req, res, next) => {
