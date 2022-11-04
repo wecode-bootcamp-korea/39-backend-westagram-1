@@ -61,34 +61,27 @@ app.post('/posts', (req, res, next) => {
   res.status(201).json({ message: 'postCreated' });
 });
 
-app.get('/users/:id', async (req, res) => {
+app.get('/posts/userId/:id', async (req, res) => {
   const { id } = req.params;
   await myDataSource.query(
     `SELECT
-      users.id AS userID, users.profile_image AS userProfileImage,
-      pi.postings
-    FROM users
-    JOIN (
-      SELECT user_id,
-        JSON_ARRAYAGG(
-          JSON_OBJECT(
-            "postingId", posts.id,
-            "postingImageUrl", posts.post_image,
-            "postingContent", posts.content
-          )
-        ) AS postings
-      FROM posts
-      GROUP BY user_id
-    ) pi
-    ON users.id = pi.user_id
-    WHERE users.id = ${id}
-    GROUP BY users.id`,
+      u.id userID,
+      u.profile_image userProfileImage,
+      JSON_ARRAYAGG(JSON_OBJECT(
+        "postingId", p.id,
+        "postingImageUrl", p.post_image,
+        "postingContent", p.content
+      )) postings
+    FROM users u
+    INNER JOIN posts p ON p.user_id = u.id
+    WHERE u.id = ${id}
+    GROUP BY u.id`,
     (err, rows) => {
       const result = rows.map((row) => ({
         ...row,
         postings: JSON.parse(row.postings),
       }));
-      res.status(200).json(result);
+      res.status(200).json(rows);
     }
   );
 });
