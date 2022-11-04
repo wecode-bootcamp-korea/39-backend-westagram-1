@@ -8,7 +8,6 @@ dotenv.config()
 
 const { DataSource } = require('typeorm')
 
-console.log( process.env.TYPEORM_PASSWORD)
 
 const myDataSource = new DataSource({
 
