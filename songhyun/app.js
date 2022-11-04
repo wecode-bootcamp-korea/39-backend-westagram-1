@@ -5,7 +5,6 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 dotenv.config();
 import { DataSource } from "typeorm";
-import { nextTick } from "process";
 
 const myDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -130,6 +129,19 @@ app.patch("/post/update", async (req, res) => {
   );
 
   res.status(201).json({ data: showDB });
+});
+
+// 특정 글 삭제
+app.delete("/post/delete", async (req, res) => {
+  const { post_id } = req.body;
+
+  await myDataSource.query(
+    `DELETE FROM posts
+    WHERE posts.id = ${post_id}`,
+    () => {
+      res.status(200).json({ message: "postDeleted" });
+    }
+  );
 });
 
 const server = http.createServer(app);
