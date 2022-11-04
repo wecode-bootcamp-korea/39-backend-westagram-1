@@ -98,6 +98,17 @@ app.get('/posts', (req, res, next) => {
   );
 });
 
+app.delete('/posts/:postId/users/:userId', async (req, res) => {
+  const { postId, userId } = req.params;
+  await myDataSource.query(
+    `
+    DELETE FROM posts
+    WHERE posts.id = ? and posts.user_id = ?`,
+    [postId, userId]
+  );
+  res.status(200).json({ message: 'postingDeleted' });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
