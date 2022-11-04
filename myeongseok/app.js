@@ -63,24 +63,60 @@ app.post('/posts', (req, res, next) => {
 
 app.get('/users/:id', async (req, res) => {
   const { id } = req.params;
-  const [user] = await myDataSource.query(
+  // const [user] = await myDataSource.query(
+  //   `SELECT
+  // users.id as userID,
+  // users.profile_image as userProfileImage
+  // FROM users
+  // WHERE users.id = ${id}`
+  // );
+  // const post = await myDataSource.query(
+  //   `SELECT
+  //   posts.id as postingId,
+  //   posts.post_image as postingImageUrl,
+  //   posts.content as postingContent
+  //   FROM posts
+  //   WHERE posts.user_id = ${id}`
+  // );
+  // user.posting = post;
+  // const userpost = user;
+  await myDataSource.query(
+    // `SELECT
+    //   users.id AS userID,
+    //   users.profile_image AS userProfileImage,
+    //   JSON_ARRAYAGG(posts.id) AS postingId,
+    //   JSON_ARRAYAGG(posts.post_image) AS postingImageUrl,
+    //   JSON_ARRAYAGG(posts.content) AS postingContent
+    //   FROM users
+    // JOIN posts ON users.id = ${id} and ${id} = posts.user_id
+    // GROUP BY users.id`,
     `SELECT
-  users.id as userID,
-  users.profile_image as userProfileImage
-  FROM users
-  WHERE users.id = ${id}`
+      users.id AS userID, users.profile_image AS userProfileImage,
+      pi.postings
+    FROM users
+    JOIN (
+      SELECT user_id,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            "postingId", posts.id,
+            "postingImageUrl", posts.post_image,
+            "postingContent", posts.content
+          )
+        ) AS postings
+      FROM posts
+      GROUP BY user_id
+    ) pi
+    ON users.id = pi.user_id
+    WHERE users.id = ${id}
+    GROUP BY users.id`,
+    (err, rows) => {
+      const result = rows.map((row) => ({
+        ...row,
+        postings: JSON.parse(row.postings),
+      }));
+      res.status(200).json(result);
+    }
   );
-  const post = await myDataSource.query(
-    `SELECT
-    posts.id as postingId,
-    posts.post_image as postingImageUrl,
-    posts.content as postingContent
-    FROM posts
-    WHERE posts.user_id = ${id}`
-  );
-  user.posting = post;
-  const userpost = user;
-  res.status(200).json(userpost);
 });
 
 app.get('/posts', (req, res, next) => {
