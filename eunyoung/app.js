@@ -20,22 +20,49 @@ myDataSource.initialize()
     .then(() => {
         console.log("Data Source has been initialized!")
     })
+    .catch((err) => {
+        console.error("Error During Data Source Initialization", err)
+    myDataSource.destroy()
+    })
 
-app = express()
-
-app.use(express.json());
-app.use(cors());
-app.use(morgan('dev'));
-
-app.get("/ping", (req, res) => {
-    res.json({ message : "pong"})
-});
-
-const server = http.createServer(app)
+const app = express()
 const PORT = process.env.PORT;
 
+app.use(cors());
+app.use(morgan('dev'));
+app.use(express.json());
+
+app.get("/ping", (req, res) => {
+    res.status(201).json({ message : "pong" })
+});
+
+
+app.post("/users/signup", async (req, res, next) => {
+    const { userId, password, name, email, userImg } = req.body
+    
+    await myDataSource.query(
+        `INSERT INTO users(
+            userId,
+            password,
+            name,
+            email,
+            userImg
+            ) VALUES (?, ?, ?, ?, ?);
+        `,
+        [ userId, password, name, email, userImg ]
+    );
+
+    res.status(201).json({ "message" : "userCreated!" });
+})
+
+
+
 const start = async () => {
-    server.listen(PORT, () => console.log(`server is listening on ${PORT}`))
-}
+    try {
+        app.listen(PORT, () => console.log(`server is listening on ${PORT}`));
+    } catch (err) {
+        console.error(err);
+    }
+};
 
 start()
