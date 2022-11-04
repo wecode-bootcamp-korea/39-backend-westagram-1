@@ -30,7 +30,7 @@ app.get("/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
-// 회원가입
+// 회원가입(과제2)
 app.post("/join", async (req, res) => {
   const { name, password, email } = req.body;
 
@@ -46,7 +46,7 @@ app.post("/join", async (req, res) => {
   res.status(201).json({ message: "user created" });
 });
 
-// 글 등록
+// 글 등록(과제3)
 app.post("/post", async (req, res) => {
   const { title, content, user_id } = req.body;
 
@@ -62,7 +62,7 @@ app.post("/post", async (req, res) => {
   res.status(201).json({ message: "postCreated" });
 });
 
-// 글 보기
+// 글 보기(과제4)
 app.get("/post/view", async (req, res) => {
   await myDataSource.query(
     `SELECT
@@ -79,7 +79,7 @@ app.get("/post/view", async (req, res) => {
   );
 });
 
-// 유저가 작성한 글 보기
+// 유저가 작성한 글 보기(과제5)
 app.get("/user/view", async (req, res) => {
   try {
     const { user_id } = req.body;
@@ -106,7 +106,7 @@ app.get("/user/view", async (req, res) => {
   }
 });
 
-// 특정 글 내용 수정
+// 특정 글 내용 수정(과제6)
 app.patch("/post/update", async (req, res) => {
   const { updatedContent } = req.body;
 
@@ -131,7 +131,7 @@ app.patch("/post/update", async (req, res) => {
   res.status(201).json({ data: showDB });
 });
 
-// 특정 글 삭제
+// 특정 글 삭제(과제7)
 app.delete("/post/delete", async (req, res) => {
   const { post_id } = req.body;
 
@@ -142,6 +142,40 @@ app.delete("/post/delete", async (req, res) => {
       res.status(200).json({ message: "postDeleted" });
     }
   );
+});
+
+// 좋아요 추가(과제8)
+app.post("/post/likes", async (req, res) => {
+  const { user_id, post_id } = req.body;
+  const key = `IF(\n EXISTS(\n SELECT\n user_id\n          FROM likes\n          WHERE likes.user_id=${user_id}), 1, 0)`;
+  const ifExists = await myDataSource.query(
+    `SELECT
+      IF(
+        EXISTS(
+          SELECT
+            user_id
+          FROM likes
+          WHERE likes.user_id=${user_id}), 1, 0);
+    `
+  );
+  // 같은 유저가 같은 글에 좋아요를 눌렀을 때 좋아요 삭제
+  if (ifExists[0][key] == 0) {
+    await myDataSource.query(
+      `INSERT INTO likes(
+        user_id,
+        post_id
+      ) VALUE (?, ?);
+      `,
+      [user_id, post_id]
+    );
+    res.status(201).json({ message: "likeCreated" });
+  } else if (ifExists[0][key] == 1) {
+    await myDataSource.query(
+      `DELETE FROM likes
+        WHERE user_id=${user_id} AND post_id=${post_id};`
+    );
+    res.status(201).json({ message: "likeDeleted" });
+  }
 });
 
 const server = http.createServer(app);
