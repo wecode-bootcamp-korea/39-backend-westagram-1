@@ -63,33 +63,7 @@ app.post('/posts', (req, res, next) => {
 
 app.get('/users/:id', async (req, res) => {
   const { id } = req.params;
-  // const [user] = await myDataSource.query(
-  //   `SELECT
-  // users.id as userID,
-  // users.profile_image as userProfileImage
-  // FROM users
-  // WHERE users.id = ${id}`
-  // );
-  // const post = await myDataSource.query(
-  //   `SELECT
-  //   posts.id as postingId,
-  //   posts.post_image as postingImageUrl,
-  //   posts.content as postingContent
-  //   FROM posts
-  //   WHERE posts.user_id = ${id}`
-  // );
-  // user.posting = post;
-  // const userpost = user;
   await myDataSource.query(
-    // `SELECT
-    //   users.id AS userID,
-    //   users.profile_image AS userProfileImage,
-    //   JSON_ARRAYAGG(posts.id) AS postingId,
-    //   JSON_ARRAYAGG(posts.post_image) AS postingImageUrl,
-    //   JSON_ARRAYAGG(posts.content) AS postingContent
-    //   FROM users
-    // JOIN posts ON users.id = ${id} and ${id} = posts.user_id
-    // GROUP BY users.id`,
     `SELECT
       users.id AS userID, users.profile_image AS userProfileImage,
       pi.postings
