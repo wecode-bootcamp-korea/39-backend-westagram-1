@@ -76,13 +76,7 @@ app.get('/posts/userId/:id', async (req, res) => {
     INNER JOIN posts p ON p.user_id = u.id
     WHERE u.id = ${id}
     GROUP BY u.id`,
-    (err, rows) => {
-      const result = rows.map((row) => ({
-        ...row,
-        postings: JSON.parse(row.postings),
-      }));
-      res.status(200).json(result);
-    }
+    (err, rows) => res.status(200).json(rows)
   );
 });
 
