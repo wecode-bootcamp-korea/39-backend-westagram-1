@@ -81,7 +81,7 @@ app.get('/posts/userId/:id', async (req, res) => {
         ...row,
         postings: JSON.parse(row.postings),
       }));
-      res.status(200).json(rows);
+      res.status(200).json(result);
     }
   );
 });
