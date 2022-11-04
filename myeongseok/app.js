@@ -79,6 +79,29 @@ app.get('/posts', (req, res, next) => {
   );
 });
 
+app.patch('/posts', async (req, res) => {
+  const { id, content, user_id } = req.body;
+  await myDataSource.query(
+    `UPDATE posts
+      SET
+        content = ?
+      WHERE id = ?
+      `,
+    [content, id]
+  );
+  const data = await myDataSource.query(
+    `SELECT
+      users.id userId,
+      users.name userName,
+      posts.id postingId,
+      posts.title postingTitle,
+      posts.content postingContent
+    FROM users, posts
+    WHERE users.id = ${user_id} and posts.id = ${id}`
+  );
+  res.status(201).json(data);
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
