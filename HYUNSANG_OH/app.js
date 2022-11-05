@@ -41,11 +41,11 @@ app.get("/allPosts", async (req, res) => {
   const posts = await appDataSource.query(
     `
         SELECT
-            u.id as userId,
-            u.profile_image as userProfileImage,
-            p.user_id as postingId,
-            p.image_url as postingImageUrl,
-            p.content as postingContent
+          u.id as userId,
+          u.profile_image as userProfileImage,
+          p.user_id as postingId,
+          p.image_url as postingImageUrl,
+          p.content as postingContent
         FROM users u
         JOIN posts p ON u.id = p.user_id;
         `
@@ -55,29 +55,27 @@ app.get("/allPosts", async (req, res) => {
 
 //특정 유저가 쓴 게시글 조회
 app.get("/userPost/:userId", async (req, res) => {
-  const userId = req.params.userId;
-  const user = await appDataSource.query(
-    `
-        SELECT
-            users.id as userId,
-            users.profile_image as userProfileImage
-        FROM users
-        WHERE users.id = ${userId};
-        `
-  );
+  const { userId } = req.params;
   const userPost = await appDataSource.query(
     `
-        SELECT
-            posts.id as postingId,
-            posts.image_url as postingImageUrl,
-            posts.content as postingContent
-        FROM posts
-        WHERE posts.user_id = ${userId};
-        `
+    SELECT 
+      users.id,
+      users.profile_image,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            "postingId",posts.id,
+            "postingImageUrl", posts.image_url,
+            "postingContent",posts.content
+          )
+        ) as postings
+    FROM users
+    LEFT JOIN posts ON users.id = posts.user_id
+    WHERE users.id = ?
+    GROUP BY users.id;
+    `,
+    [userId]
   );
-  user[0].posting = userPost;
-  const result = user[0];
-  res.status(200).json({ data: result });
+  res.status(200).json({ data: userPost });
 });
 
 //회원가입
@@ -86,10 +84,10 @@ app.post("/signup", async (req, res, next) => {
   await appDataSource.query(
     `
     INSERT INTO users(
-        user_name,
-        email,
-        user_password,
-        profile_image
+      user_name,
+      email,
+      user_password,
+      profile_image
     ) VALUES (?, ?, ?, ?);
     `,
     [name, email, password, profile_image]
@@ -103,10 +101,10 @@ app.post("/post", async (req, res, next) => {
   await appDataSource.query(
     `
     INSERT INTO posts(
-        title,
-        content,
-        image_url,
-        user_id
+      title,
+      content,
+      image_url,
+      user_id
     ) VALUES (?, ?, ?, ?);
     `,
     [title, content, image_url, user_id]
@@ -117,21 +115,22 @@ app.post("/post", async (req, res, next) => {
 //좋아요 누르기
 app.post("/likes", async (req, res, next) => {
   const { userId, postId } = req.body;
+
   const likes = await appDataSource.query(
     `
-    SELECT
-        id,
-        user_id,
-        post_id
-    FROM likes
-    WHERE user_id = ${userId} and post_id =${postId}`
+    SELECT EXISTS
+    (SELECT * FROM likes
+    WHERE user_id = ? and post_id = ?)
+    AS 'LIKED';
+    `,
+    [userId, postId]
   );
-  if (likes.id !== 0) {
+  if (likes[0].LIKED == 0) {
     await appDataSource.query(
       `
         INSERT INTO likes(
-            user_id,
-            post_id
+          user_id,
+          post_id
         ) VALUES (?,?);
         `,
       [userId, postId]
@@ -142,7 +141,9 @@ app.post("/likes", async (req, res, next) => {
       `
         DELETE
         FROM likes
-        WHERE user_id = ${userId} and post_id =${postId}`
+        WHERE user_id = ? and post_id = ?
+      `,
+      [userId, postId]
     );
     res.status(202).json({ message: "likesDeleted" });
   }
@@ -150,48 +151,74 @@ app.post("/likes", async (req, res, next) => {
 
 //게시글 수정
 app.patch("/update/:postId", async (req, res, next) => {
-  const postId = req.params.postId;
+  const { postId } = req.params;
   const { title, content, image_url } = req.body;
-  await appDataSource.query(
+  const checkExisted = await appDataSource.query(
     `
-        UPDATE posts SET
-            title = ?,
-            content = ?,
-            image_url = ?
-        WHERE posts.id = ${postId}
-        `,
-    [title, content, image_url]
+      SELECT EXISTS
+      (SELECT * FROM posts
+      WHERE id = ?)
+      AS postExist
+      `,
+    [postId]
   );
+  if (checkExisted[0].postExist == 1) {
+    await appDataSource.query(
+      `
+        UPDATE posts SET
+          title = ?,
+          content = ?,
+          image_url = ?
+        WHERE posts.id = ?
+        `,
+      [title, content, image_url, postId]
+    );
+  } else {
+    res.status(404).json({ message: "Non Existing Post" });
+  }
   const editedPost = await appDataSource.query(
     `
-        SELECT
-            users.id as userId,
-            users.user_name as userName,
-            posts.id as postingId,
-            posts.title as postingTitle,
-            posts.content as postingContent
-        FROM users
-        JOIN posts ON users.id = posts.user_id
-        WHERE posts.id = ${postId}`
+      SELECT
+        users.id as userId,
+        users.user_name as userName,
+        posts.id as postingId,
+        posts.title as postingTitle,
+        posts.content as postingContent
+      FROM users
+      JOIN posts ON users.id = posts.user_id
+      WHERE posts.id = ?
+      `,
+    [postId]
   );
   res.status(202).json({ data: editedPost });
 });
-
 //게시글 삭제
 app.delete("/delete/:userId", async (req, res, next) => {
   const userId = req.params.userId;
   const { postId } = req.body;
-  await appDataSource.query(
+  const checkExisted = await appDataSource.query(
     `
-        DELETE
-        FROM posts
-        WHERE posts.user_id = ${userId} and posts.id =${postId}
-    `,
+      SELECT EXISTS
+      (SELECT * FROM posts
+      WHERE id = ?)
+      AS postExist
+      `,
     [postId]
   );
-  res.status(202).json({ message: "postingDeleted" });
+  if (checkExisted[0].postExist == 1) {
+    await appDataSource.query(
+      `
+        DELETE
+        FROM posts
+        WHERE posts.user_id = ? and posts.id = ?
+      `,
+      [userId, postId]
+    );
+    res.status(202).json({ message: "postingDeleted" });
+  } else {
+    res.status(404).json({ message: "Non Existing Post" });
+  }
 });
-
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
