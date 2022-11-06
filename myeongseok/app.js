@@ -27,7 +27,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 app.get('/ping', (req, res, next) => {
-  res.json({ message: 'pong' });
+  res.status(200).json({ message: 'pong' });
 });
 
 app.post('/users/signup', (req, res, next) => {
