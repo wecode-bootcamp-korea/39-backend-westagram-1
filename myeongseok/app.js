@@ -99,15 +99,15 @@ app.get('/posts', (req, res, next) => {
   );
 });
 
-app.post('/likes', (req, res) => {
+app.post('/likes', async (req, res) => {
   const { user_id, post_id } = req.body;
-  myDataSource.query(
+  await myDataSource.query(
     `INSERT INTO
       likes (user_id, post_id)
     VALUES (?, ?)`,
     [user_id, post_id]
   );
-  res.status(200).json({ message: 'likeCreated' });
+  res.status(201).json({ message: 'likeCreated' });
 });
 
 const server = http.createServer(app);
