@@ -1,13 +1,13 @@
+require('dotenv').config();
+
 const http = require('http');
+
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
-
-const dotenv = require('dotenv');
-dotenv.config();
-
 const { DataSource } = require('typeorm');
+
+const app = express();
 
 const myDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
