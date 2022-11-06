@@ -47,16 +47,17 @@ app.post('/users/signup', (req, res, next) => {
 });
 
 app.post('/posts', (req, res, next) => {
-  const { title, content, user_id } = req.body;
+  const { title, post_image, content, user_id } = req.body;
 
   myDataSource.query(
     `INSERT INTO posts(
       title,
+      post_image,
       content,
       user_id
-    ) VALUES (?, ?, ?);
+    ) VALUES (?, ?, ?, ?);
     `,
-    [title, content, user_id]
+    [title, post_image, content, user_id]
   );
   res.status(201).json({ message: 'postCreated' });
 });
