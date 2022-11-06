@@ -99,6 +99,17 @@ app.get('/posts', (req, res, next) => {
   );
 });
 
+app.post('/likes', (req, res) => {
+  const { user_id, post_id } = req.body;
+  myDataSource.query(
+    `INSERT INTO
+      likes (user_id, post_id)
+    VALUES (?, ?)`,
+    [user_id, post_id]
+  );
+  res.status(200).json({ message: 'likeCreated' });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
