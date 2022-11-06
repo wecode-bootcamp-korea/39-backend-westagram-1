@@ -75,10 +75,12 @@ app.get('/posts/userId/:id', async (req, res) => {
       )) postings
     FROM users u
     INNER JOIN posts p ON p.user_id = u.id
-    WHERE u.id = ${id}
+    WHERE u.id = ?
     GROUP BY u.id`,
-    (err, rows) => res.status(200).json(rows)
+    [id]
   );
+
+  (err, rows) => res.status(200).json(rows);
 });
 
 app.get('/posts', (req, res, next) => {
