@@ -98,13 +98,13 @@ app.get('/posts', (req, res, next) => {
   );
 });
 
-app.delete('/posts/:postId/users/:userId', async (req, res) => {
+app.delete('/posts/:postId', async (req, res) => {
   const { postId, userId } = req.params;
   await myDataSource.query(
     `
     DELETE FROM posts
-    WHERE posts.id = ? and posts.user_id = ?`,
-    [postId, userId]
+    WHERE posts.id = ?`,
+    [postId]
   );
   res.status(200).json({ message: 'postingDeleted' });
 });
