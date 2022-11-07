@@ -52,7 +52,7 @@ app.post('/users/signup', (req, res, next) => {
 });
 
 app.post('/posts', (req, res, next) => {
-  const { title, post_image, content, user_id } = req.body;
+  const { title, postImageUrl, content, user_id } = req.body;
 
   myDataSource.query(
     `INSERT INTO posts(
@@ -62,7 +62,7 @@ app.post('/posts', (req, res, next) => {
       user_id
     ) VALUES (?, ?, ?, ?);
     `,
-    [title, post_image, content, user_id]
+    [title, postImageUrl, content, user_id]
   );
   res.status(201).json({ message: 'postCreated' });
 });
