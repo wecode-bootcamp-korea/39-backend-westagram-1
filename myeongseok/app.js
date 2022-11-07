@@ -48,6 +48,7 @@ app.post('/users/signup', (req, res, next) => {
     `,
     [name, email, profile_image, password]
   );
+
   res.status(201).json({ message: 'userCreated' });
 });
 
@@ -69,7 +70,7 @@ app.post('/posts', (req, res, next) => {
 
 app.get('/posts/userId/:id', async (req, res) => {
   const { id } = req.params;
-  await myDataSource.query(
+  const rows = await myDataSource.query(
     `SELECT
       u.id userID,
       u.profile_image userProfileImage,
@@ -85,7 +86,7 @@ app.get('/posts/userId/:id', async (req, res) => {
     [id]
   );
 
-  (err, rows) => res.status(200).json(rows);
+  res.status(200).json(rows);
 });
 
 app.get('/posts', (req, res, next) => {
@@ -114,6 +115,7 @@ app.post('/likes', async (req, res) => {
     VALUES (?, ?)`,
     [user_id, post_id]
   );
+
   res.status(201).json({ message: 'likeCreated' });
 });
 
@@ -125,6 +127,7 @@ app.delete('/posts/:postId', async (req, res) => {
     WHERE posts.id = ?`,
     [postId]
   );
+
   res.status(200).json({ message: 'postingDeleted' });
 });
 
