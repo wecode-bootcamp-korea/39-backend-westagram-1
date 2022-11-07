@@ -100,25 +100,15 @@ app.get('/posts', (req, res, next) => {
 
 app.patch('/posts', async (req, res) => {
   const { id, content, user_id } = req.body;
-  await myDataSource.query(
+  const result = await myDataSource.query(
     `UPDATE posts
       SET
         content = ?
-      WHERE id = ?
+      WHERE id = ? and user_id = ?
       `,
-    [content, id]
+    [content, id, user_id]
   );
-  const data = await myDataSource.query(
-    `SELECT
-      users.id userId,
-      users.name userName,
-      posts.id postingId,
-      posts.title postingTitle,
-      posts.content postingContent
-    FROM users, posts
-    WHERE users.id = ${user_id} and posts.id = ${id}`
-  );
-  res.status(201).json(data);
+  res.status(201).json({ message: `affectedRows, ${result.affectedRows}` });
 });
 
 const server = http.createServer(app);
