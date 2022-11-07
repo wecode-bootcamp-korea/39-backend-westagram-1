@@ -1,5 +1,5 @@
 {
-  "name": "myapp",
+  "name": "sanguk",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -16,7 +16,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "morgan": "^1.10.0",
-    "mysql": "^2.18.1",
+    "mysql2": "^2.3.3",
     "typeorm": "^0.3.10"
   }
 }

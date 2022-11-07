@@ -29,11 +29,28 @@ app.get("/ping", (req, res) => {
   res.json({ message: "pong" });
 });
 
+app.post("/join", async (req, res) => {
+  const { name, password, email } = req.body;
+
+  await myDataSource.query(
+    `INSERT INTO users(
+      name,
+      password,
+      email
+    ) VALUES (?, ?, ?);
+    `,
+    [name, password, email]
+  );
+  res.status(201).json({ message: "user created" });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
 const start = async () => {
-  server.listen(PORT, () => console.log(`server is listening on ${PORT}`));
+  server.listen(PORT, () =>
+    console.log(`server is listening on localhost ${PORT}`)
+  );
 };
 
 start();

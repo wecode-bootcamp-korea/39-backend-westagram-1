@@ -20,22 +20,81 @@ myDataSource.initialize()
     .then(() => {
         console.log("Data Source has been initialized!")
     })
+    .catch((err) => {
+        console.error("Error During Data Source Initialization", err)
+    myDataSource.destroy()
+    })
 
-app = express()
-
-app.use(express.json());
-app.use(cors());
-app.use(morgan('dev'));
-
-app.get("/ping", (req, res) => {
-    res.json({ message : "pong"})
-});
-
-const server = http.createServer(app)
+const app = express()
 const PORT = process.env.PORT;
 
+app.use(cors());
+app.use(morgan('dev'));
+app.use(express.json());
+
+app.get("/ping", (req, res) => {
+    res.status(201).json({ message : "pong" })
+});
+
+
+app.post("/users/signup", async (req, res, next) => {
+    const { password, name, email, userImg } = req.body
+    
+    await myDataSource.query(
+        `INSERT INTO users(
+            password,
+            name,
+            email,
+            userImg
+            ) VALUES (?, ?, ?, ?);
+        `,
+        [ password, name, email, userImg ]
+    );
+
+    res.status(201).json({ "message" : "userCreated!" });
+})
+
+app.post("/posts", async (req, res, next) => {
+    const { title, content, contentImg, userId } = req.body
+
+    await myDataSource.query(
+        `INSERT INTO posts(
+            title,
+            content,
+            contentImg,
+            userId
+        ) VALUES (?, ?, ?, ?);
+        `,
+        [ title, content, contentImg, userId ]
+    );
+
+    res.status(201).json({ "message" : "postCreated!" });
+})
+
+app.get("/posts", async (req, res, next) => {
+    const postData = 
+    await myDataSource.query(
+        `SELECT
+            users.id AS userId,
+            users.userImg AS userProfileImage,
+            posts.id AS postingId,
+            posts.contentImg as postingImageUrl,
+            posts.content AS postingContent
+        FROM
+            posts
+        INNER JOIN
+            users ON posts.userId = users.id;
+        `
+    );
+    res.status(200).json({ data: postData });
+})
+
 const start = async () => {
-    server.listen(PORT, () => console.log(`server is listening on ${PORT}`))
-}
+    try {
+        app.listen(PORT, () => console.log(`server is listening on ${PORT}`));
+    } catch (err) {
+        console.error(err);
+    }
+};
 
 start()
