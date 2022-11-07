@@ -99,7 +99,7 @@ app.get('/posts', (req, res, next) => {
 });
 
 app.delete('/posts/:postId', async (req, res) => {
-  const { postId, userId } = req.params;
+  const { postId } = req.params;
   await myDataSource.query(
     `
     DELETE FROM posts
