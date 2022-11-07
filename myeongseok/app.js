@@ -99,14 +99,14 @@ app.get('/posts', (req, res, next) => {
 });
 
 app.patch('/posts', async (req, res) => {
-  const { id, content, user_id } = req.body;
+  const { id, content, userId } = req.body;
   const result = await myDataSource.query(
     `UPDATE posts
       SET
         content = ?
-      WHERE id = ? and user_id = ?
+      WHERE id = ? and userId = ?
       `,
-    [content, id, user_id]
+    [content, id, userId]
   );
   res.status(201).json({
     message: 'success',
