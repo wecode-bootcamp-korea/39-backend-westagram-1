@@ -78,7 +78,7 @@ app.get("/posts/all", async (req, res, next) => {
     await myDataSource.query(
         `SELECT
             users.id AS userID,
-            users.userImg as userProfileImage,
+            users.userImg AS userProfileImage,
             posts.userId AS postingID,
             posts.contentImg AS postingImageUrl,
             posts.content AS postingContent
@@ -92,7 +92,7 @@ app.get("/posts/all", async (req, res, next) => {
 })
 
 // 유저게시글 조회
-app.get("/posts/:userId", async (req, res) => {
+app.get("/posts/user/:userId", async (req, res) => {
     const userId = req.params.userId;
 
     const userData =
@@ -141,7 +141,7 @@ app.put("/posts", async (req, res) => {
         `,
         [ title, content, contentImg, id ]
     );
-    res.status(201).json({ "message" : "successfully updated!" })
+    res.status(200).json({ "message" : "successfully updated!" })
 })
 
 // 게시글 삭제
