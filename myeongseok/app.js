@@ -108,7 +108,10 @@ app.patch('/posts', async (req, res) => {
       `,
     [content, id, user_id]
   );
-  res.status(201).json({ message: `affectedRows, ${result.affectedRows}` });
+  res.status(201).json({
+    message: 'success',
+    affectedRows: result.affectedRows,
+  });
 });
 
 const server = http.createServer(app);
