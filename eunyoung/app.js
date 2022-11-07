@@ -77,9 +77,9 @@ app.get("/posts/all", async (req, res, next) => {
     const postData = 
     await myDataSource.query(
         `SELECT
-            users.id AS userID,
+            users.id AS userId,
             users.userImg AS userProfileImage,
-            posts.userId AS postingID,
+            posts.userId AS postingId,
             posts.contentImg AS postingImageUrl,
             posts.content AS postingContent
         FROM
@@ -97,8 +97,7 @@ app.get("/posts/user/:userId", async (req, res) => {
 
     const userData =
     await myDataSource.query(
-        `
-        SELECT
+        `SELECT
             users.id AS userId,
             users.userImg AS userProfileImage
         FROM
