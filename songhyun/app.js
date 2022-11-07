@@ -43,6 +43,7 @@ app.post("/join", async (req, res) => {
     [name, password, email]
   );
   res.status(201).json({ message: "user created" });
+});
 
 app.post("/post", async (req, res) => {
   const { title, content, userId } = req.body;
