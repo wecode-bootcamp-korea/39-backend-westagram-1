@@ -37,7 +37,7 @@ app.get("/ping", (req, res) => {
 });
 
 //전체게시물 조회
-app.get("/allPosts", async (req, res) => {
+app.get("/posts", async (req, res) => {
   const posts = await appDataSource.query(
     `
         SELECT
@@ -75,7 +75,11 @@ app.get("/userPost/:userId", async (req, res) => {
     `,
     [userId]
   );
-  res.status(200).json({ data: userPost });
+  const result = userPost.map((userPost) => ({
+    ...userPost,
+    postings: JSON.parse(userPost.postings),
+  }));
+  res.status(200).json({ data: result });
 });
 
 //회원가입
@@ -135,7 +139,7 @@ app.post("/likes", async (req, res, next) => {
         `,
       [userId, postId]
     );
-    res.status(202).json({ message: "likeCreated" });
+    res.status(201).json({ message: "likeCreated" });
   } else {
     await appDataSource.query(
       `
@@ -145,12 +149,12 @@ app.post("/likes", async (req, res, next) => {
       `,
       [userId, postId]
     );
-    res.status(202).json({ message: "likesDeleted" });
+    res.status(201).json({ message: "likesDeleted" });
   }
 });
 
 //게시글 수정
-app.patch("/update/:postId", async (req, res, next) => {
+app.patch("/post/:postId", async (req, res, next) => {
   const { postId } = req.params;
   const { title, content, image_url } = req.body;
   const checkExisted = await appDataSource.query(
@@ -190,10 +194,10 @@ app.patch("/update/:postId", async (req, res, next) => {
       `,
     [postId]
   );
-  res.status(202).json({ data: editedPost });
+  res.status(201).json({ data: editedPost });
 });
 //게시글 삭제
-app.delete("/delete/:userId", async (req, res, next) => {
+app.delete("/post/:userId", async (req, res, next) => {
   const userId = req.params.userId;
   const { postId } = req.body;
   const checkExisted = await appDataSource.query(
@@ -214,7 +218,7 @@ app.delete("/delete/:userId", async (req, res, next) => {
       `,
       [userId, postId]
     );
-    res.status(202).json({ message: "postingDeleted" });
+    res.status(200).json({ message: "postingDeleted" });
   } else {
     res.status(404).json({ message: "Non Existing Post" });
   }
