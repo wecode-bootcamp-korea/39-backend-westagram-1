@@ -57,7 +57,7 @@ app.post('/posts', (req, res, next) => {
   myDataSource.query(
     `INSERT INTO posts(
       title,
-      post_image,
+      post_image_url,
       content,
       user_id
     ) VALUES (?, ?, ?, ?);
@@ -75,7 +75,7 @@ app.get('/posts/userId/:id', async (req, res) => {
       u.profile_image userProfileImage,
       JSON_ARRAYAGG(JSON_OBJECT(
         "postingId", p.id,
-        "postingImageUrl", p.post_image,
+        "postingImageUrl", p.post_image_url,
         "postingContent", p.content
       )) postings
     FROM users u
@@ -94,7 +94,7 @@ app.get('/posts', (req, res, next) => {
         users.id as userId,
         users.profile_image as userProfileImage,
         posts.id as postingId,
-        posts.post_image as postingImageUrl,
+        posts.post_image_url as postingImageUrl,
         posts.content as postingContent
       FROM posts
       INNER JOIN users ON posts.user_id = users.id`,
