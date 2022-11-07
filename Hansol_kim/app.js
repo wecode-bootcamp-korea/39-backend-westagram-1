@@ -37,7 +37,6 @@ app.get("/ping", (req, res) => {
     res.status(201).json({"message" : "pong"});
 })
 
-
 //create account
 app.post("/users/signup", async (req, res, next) => {
   const {name, email, profileImage, password} = req.body
