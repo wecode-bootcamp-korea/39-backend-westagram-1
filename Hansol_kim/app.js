@@ -34,15 +34,12 @@ app.use(express.json());
 
 // health check
 app.get("/ping", (req, res) => {
-    res.status(201).json({"message" : "pong"});
-})
+    res.status(200).json({message : "pong"});
+});
 
 //create account
 app.post("/users/signup", async (req, res, next) => {
   const {name, email, profileImage, password} = req.body
-  console.log(req);
-
-  //console.log(req)    
 
   await myDataSource.query(
     `INSERT INTO users(
@@ -55,7 +52,64 @@ app.post("/users/signup", async (req, res, next) => {
   [name, email, profileImage, password])
 
   res.status(201).json({ message : "userCreated"});
+
+  return res.status(201).json({ message : "userCreated"});
 })
+
+//create post
+app.post("/posts/postcreate", async (req, res, next) => {
+  const {title, content, uploader} = req.body
+  console.log(req);
+
+  //console.log(req)    
+
+  await myDataSource.query(
+    `INSERT INTO posts(
+      title, 
+      content, 
+      user_id
+  ) VALUES (?, ?, ?);
+  `,
+  [title, content, uploader])
+
+  res.status(201).json({ message : "post_Created"});
+})
+
+
+//getboards
+app.get('/boards', async (req, res) => {
+  await myDataSource.manager.query(
+    `SELECT
+        users.id AS userId,
+        users.profile_image AS userProfileImage, 
+        posts.id AS postingId,
+        posts.postingImageUrl,
+        posts.content AS postingContent
+    FROM users LEFT JOIN posts ON users.id = posts.id;`
+  ,(err, rows) => {
+          res.status(200).json({"data":rows});
+  })
+});
+
+
+//6번과제 
+app.get('/boards', async (req, res) => {
+  await myDataSource.manager.query(
+    `SELECT
+        users.id AS userId,
+        users.name AS userName, 
+        posts.id AS postingId,
+        posts.title AS postingTitle,
+        posts.content AS postingContent
+    FROM users LEFT JOIN posts ON users.id = posts.id
+    WHERE users.id=${userId} and posts.id=${postId};
+    `
+  ,(err, rows) => {
+          res.status(200).json({"data":rows});
+  })
+});
+
+
 
 const start = async () => {
   try {
