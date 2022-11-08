@@ -33,19 +33,76 @@ app.get("/ping", (req,res)=>{
 })
 
 app.post("/users/signup", async (req,res,next)=>{
-    const {username, password, email, phonenumber } =req.body
+    const {username, userProfileImage } =req.body
 
     await myDataSource.query(
         `INSERT INTO users(
             username,
-            password,
-            email,
-            phonenumber
-        ) VALUES(?, ?, ?, ?)`
-        ,[username, password, email, phonenumber]
+            userProfileImage
+        ) VALUES(?, ?)`
+        ,[username, userProfileImage]
     )
     res.status(201).json({message : "userCreated"})
 })
+
+app.post("/posts/signup", async (req,res,next)=>{
+    const {postingId, postingImageUrl, postingContent} =req.body
+
+    await myDataSource.query(
+        `INSERT INTO posts(
+            postingId,
+            postingImageUrl,
+            postingContent
+        ) VALUES(?, ?, ?)`
+        ,[postingId, postingImageUrl, postingContent]
+    )
+    res.status(201).json({message : "postCreated"})
+})
+
+app.get ('/search/everything',async (req,res)=>{
+    await myDataSource.manager.query(    
+    `SELECT
+        users.id as userId,
+        users.userProfileImage,
+        posts.postingId,
+        posts.postingImageUrl,
+        posts.postingContent
+        FROM users
+        LEFT JOIN posts ON users.id=postingId
+`
+        ,(err, rows)=>{
+            res.status(200).json({data:rows});
+        }
+    )
+})
+
+app.get ('/search/posts_user',async (req,res)=>{
+    await myDataSource.manager.query(    
+    `SELECT
+        users.id as userId, users.userProfileImage,
+        pi.postings
+        FROM users
+        LEFT JOIN(
+            SELECT
+            userId,
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    "postingId", postingId,
+                    "postingImageUrl", postingImageUrl,
+                    "postingContent", postingContent
+                )
+            )as postings
+            FROM posts
+            GROUP BY userId
+        ) pi ON users.id = pi.userId limit 1
+        `
+        ,(err, rows)=>{
+            res.status(200).json({data:rows});
+        }
+    )
+})
+
+
 
 const server = http.createServer(app)
 const PORT = process.env.PORT;
