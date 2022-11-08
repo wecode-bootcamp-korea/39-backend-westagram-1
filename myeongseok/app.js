@@ -61,6 +61,25 @@ app.post('/posts', (req, res, next) => {
   res.status(201).json({ message: 'postCreated' });
 });
 
+app.get('/posts/userId/:id', async (req, res) => {
+  const { id } = req.params;
+  await myDataSource.query(
+    `SELECT
+      u.id userID,
+      u.profile_image userProfileImage,
+      JSON_ARRAYAGG(JSON_OBJECT(
+        "postingId", p.id,
+        "postingImageUrl", p.post_image,
+        "postingContent", p.content
+      )) postings
+    FROM users u
+    INNER JOIN posts p ON p.user_id = u.id
+    WHERE u.id = ${id}
+    GROUP BY u.id`,
+    (err, rows) => res.status(200).json(rows)
+  );
+});
+
 app.get('/posts', (req, res, next) => {
   myDataSource.query(
     `SELECT
@@ -77,6 +96,33 @@ app.get('/posts', (req, res, next) => {
       });
     }
   );
+});
+
+app.patch('/posts', async (req, res) => {
+  const { id, content, userId } = req.body;
+  const result = await myDataSource.query(
+    `UPDATE posts
+      SET
+        content = ?
+      WHERE id = ? and userId = ?
+      `,
+    [content, id, userId]
+  );
+  res.status(201).json({
+    message: 'success',
+    affectedRows: result.affectedRows,
+  });
+});
+
+app.delete('/posts/:postId', async (req, res) => {
+  const { postId } = req.params;
+  await myDataSource.query(
+    `
+    DELETE FROM posts
+    WHERE posts.id = ?`,
+    [postId]
+  );
+  res.status(200).json({ message: 'postingDeleted' });
 });
 
 const server = http.createServer(app);

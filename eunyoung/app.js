@@ -38,24 +38,56 @@ app.get("/ping", (req, res) => {
 
 
 app.post("/users/signup", async (req, res, next) => {
-    const { userId, password, name, email, userImg } = req.body
+    const { password, name, email, userImg } = req.body
     
     await myDataSource.query(
         `INSERT INTO users(
-            userId,
             password,
             name,
             email,
             userImg
-            ) VALUES (?, ?, ?, ?, ?);
+            ) VALUES (?, ?, ?, ?);
         `,
-        [ userId, password, name, email, userImg ]
+        [ password, name, email, userImg ]
     );
 
     res.status(201).json({ "message" : "userCreated!" });
 })
 
+app.post("/posts", async (req, res, next) => {
+    const { title, content, contentImg, userId } = req.body
 
+    await myDataSource.query(
+        `INSERT INTO posts(
+            title,
+            content,
+            contentImg,
+            userId
+        ) VALUES (?, ?, ?, ?);
+        `,
+        [ title, content, contentImg, userId ]
+    );
+
+    res.status(201).json({ "message" : "postCreated!" });
+})
+
+app.get("/posts", async (req, res, next) => {
+    const postData = 
+    await myDataSource.query(
+        `SELECT
+            users.id AS userId,
+            users.userImg AS userProfileImage,
+            posts.id AS postingId,
+            posts.contentImg as postingImageUrl,
+            posts.content AS postingContent
+        FROM
+            posts
+        INNER JOIN
+            users ON posts.userId = users.id;
+        `
+    );
+    res.status(200).json({ data: postData });
+})
 
 const start = async () => {
     try {
