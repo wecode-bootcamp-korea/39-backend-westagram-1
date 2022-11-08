@@ -5,6 +5,7 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const bcrypt = require('bcrypt');
 const { DataSource } = require('typeorm');
 
 const app = express();
@@ -35,10 +36,13 @@ app.get('/ping', (req, res, next) => {
   res.status(200).json({ message: 'pong' });
 });
 
-app.post('/users/signup', (req, res, next) => {
+app.post('/users/signup', async (req, res, next) => {
   const { name, email, profileImage, password } = req.body;
+  const saltRounds = 12;
 
-  myDataSource.query(
+  const hash = await bcrypt.hash(password, saltRounds);
+
+  await myDataSource.query(
     `INSERT INTO users(
       name,
       email,
@@ -46,7 +50,7 @@ app.post('/users/signup', (req, res, next) => {
       password
     ) VALUES (?, ?, ?, ?);
     `,
-    [name, email, profileImage, password]
+    [name, email, profileImage, hash]
   );
 
   return res.status(201).json({ message: 'userCreated' });
