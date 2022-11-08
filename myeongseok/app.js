@@ -36,7 +36,7 @@ app.get('/ping', (req, res, next) => {
 });
 
 app.post('/users/signup', (req, res, next) => {
-  const { name, email, profile_image, password } = req.body;
+  const { name, email, profileImage, password } = req.body;
 
   myDataSource.query(
     `INSERT INTO users(
@@ -46,14 +46,14 @@ app.post('/users/signup', (req, res, next) => {
       password
     ) VALUES (?, ?, ?, ?);
     `,
-    [name, email, profile_image, password]
+    [name, email, profileImage, password]
   );
 
-  res.status(201).json({ message: 'userCreated' });
+  return res.status(201).json({ message: 'userCreated' });
 });
 
 app.post('/posts', (req, res, next) => {
-  const { title, postImageUrl, content, user_id } = req.body;
+  const { title, postImageUrl, content, userId } = req.body;
 
   myDataSource.query(
     `INSERT INTO posts(
@@ -63,9 +63,10 @@ app.post('/posts', (req, res, next) => {
       user_id
     ) VALUES (?, ?, ?, ?);
     `,
-    [title, postImageUrl, content, user_id]
+    [title, postImageUrl, content, userId]
   );
-  res.status(201).json({ message: 'postCreated' });
+
+  return res.status(201).json({ message: 'postCreated' });
 });
 
 app.get('/posts/userId/:id', async (req, res) => {
@@ -86,7 +87,7 @@ app.get('/posts/userId/:id', async (req, res) => {
     [id]
   );
 
-  res.status(200).json(rows);
+  return res.status(200).json(rows);
 });
 
 app.get('/posts', (req, res, next) => {
@@ -108,15 +109,15 @@ app.get('/posts', (req, res, next) => {
 });
 
 app.post('/likes', async (req, res) => {
-  const { user_id, post_id } = req.body;
+  const { userId, postId } = req.body;
   await myDataSource.query(
     `INSERT INTO
       likes (user_id, post_id)
     VALUES (?, ?)`,
-    [user_id, post_id]
+    [userId, postId]
   );
 
-  res.status(201).json({ message: 'likeCreated' });
+  return res.status(201).json({ message: 'likeCreated' });
 });
 
 app.patch('/posts', async (req, res) => {
@@ -129,7 +130,7 @@ app.patch('/posts', async (req, res) => {
       `,
     [content, id, userId]
   );
-  res.status(201).json({
+  return res.status(201).json({
     message: 'success',
     affectedRows: result.affectedRows,
   });
@@ -144,7 +145,7 @@ app.delete('/posts/:postId', async (req, res) => {
     [postId]
   );
 
-  res.status(200).json({ message: 'postingDeleted' });
+  return res.status(200).json({ message: 'postingDeleted' });
 });
 
 const server = http.createServer(app);
