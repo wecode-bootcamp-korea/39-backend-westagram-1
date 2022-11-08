@@ -45,7 +45,7 @@ app.post("/users/signup", async (req,res,next)=>{
     res.status(201).json({message : "userCreated"})
 })
 
-app.post("/posts/signup", async (req,res,next)=>{
+app.post("/posts", async (req,res,next)=>{
     const {postingId, postingImageUrl, postingContent} =req.body
 
     await myDataSource.query(
@@ -59,7 +59,7 @@ app.post("/posts/signup", async (req,res,next)=>{
     res.status(201).json({message : "postCreated"})
 })
 
-app.get ('/search/everything',async (req,res)=>{
+app.get ('/posts',async (req,res)=>{
     await myDataSource.manager.query(    
     `SELECT
         users.id as userId,
@@ -76,7 +76,8 @@ app.get ('/search/everything',async (req,res)=>{
     )
 })
 
-app.get ('/search/posts_user',async (req,res)=>{
+app.get ('/users/:userId/posts',async (req,res)=>{
+    const {userId} = req.params
     await myDataSource.manager.query(    
     `SELECT
         users.id as userId, users.userProfileImage,
@@ -93,16 +94,15 @@ app.get ('/search/posts_user',async (req,res)=>{
                 )
             )as postings
             FROM posts
-            GROUP BY userId
-        ) pi ON users.id = pi.userId limit 1
+            GROUP BY userId 
+        ) pi ON users.id = pi.userId
+        WHERE users.id = ${userId};
         `
         ,(err, rows)=>{
             res.status(200).json({data:rows});
         }
     )
 })
-
-
 
 const server = http.createServer(app)
 const PORT = process.env.PORT;
