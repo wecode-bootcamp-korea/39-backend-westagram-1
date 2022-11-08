@@ -119,6 +119,22 @@ app.post('/likes', async (req, res) => {
   res.status(201).json({ message: 'likeCreated' });
 });
 
+app.patch('/posts', async (req, res) => {
+  const { id, content, userId } = req.body;
+  const result = await myDataSource.query(
+    `UPDATE posts
+      SET
+        content = ?
+      WHERE id = ? and userId = ?
+      `,
+    [content, id, userId]
+  );
+  res.status(201).json({
+    message: 'success',
+    affectedRows: result.affectedRows,
+  });
+});
+
 app.delete('/posts/:postId', async (req, res) => {
   const { postId } = req.params;
   await myDataSource.query(
