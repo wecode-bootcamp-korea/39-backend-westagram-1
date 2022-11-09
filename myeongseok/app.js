@@ -1,13 +1,13 @@
+require('dotenv').config();
+
 const http = require('http');
+
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const morgan = require('morgan');
-
-const dotenv = require('dotenv');
-dotenv.config();
-
 const { DataSource } = require('typeorm');
+
+const app = express();
 
 const myDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -18,20 +18,25 @@ const myDataSource = new DataSource({
   database: process.env.TYPEORM_DATABASE,
 });
 
-myDataSource.initialize().then(() => {
-  console.log('Data Source has been initialized!');
-});
+myDataSource
+  .initialize()
+  .then(() => {
+    console.log('Data Source has been initialized!');
+  })
+  .catch((err) => {
+    console.error('Error during Data Source initialization', err);
+  });
 
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
 app.get('/ping', (req, res, next) => {
-  res.json({ message: 'pong' });
+  res.status(200).json({ message: 'pong' });
 });
 
 app.post('/users/signup', (req, res, next) => {
-  const { name, email, profile_image, password } = req.body;
+  const { name, email, profileImage, password } = req.body;
 
   myDataSource.query(
     `INSERT INTO users(
@@ -41,43 +46,48 @@ app.post('/users/signup', (req, res, next) => {
       password
     ) VALUES (?, ?, ?, ?);
     `,
-    [name, email, profile_image, password]
+    [name, email, profileImage, password]
   );
-  res.status(201).json({ message: 'userCreated' });
+
+  return res.status(201).json({ message: 'userCreated' });
 });
 
 app.post('/posts', (req, res, next) => {
-  const { title, content, user_id } = req.body;
+  const { title, postImageUrl, content, userId } = req.body;
 
   myDataSource.query(
     `INSERT INTO posts(
       title,
+      post_image_url,
       content,
       user_id
-    ) VALUES (?, ?, ?);
+    ) VALUES (?, ?, ?, ?);
     `,
-    [title, content, user_id]
+    [title, postImageUrl, content, userId]
   );
-  res.status(201).json({ message: 'postCreated' });
+
+  return res.status(201).json({ message: 'postCreated' });
 });
 
 app.get('/posts/userId/:id', async (req, res) => {
   const { id } = req.params;
-  await myDataSource.query(
+  const rows = await myDataSource.query(
     `SELECT
       u.id userID,
       u.profile_image userProfileImage,
       JSON_ARRAYAGG(JSON_OBJECT(
         "postingId", p.id,
-        "postingImageUrl", p.post_image,
+        "postingImageUrl", p.post_image_url,
         "postingContent", p.content
       )) postings
     FROM users u
     INNER JOIN posts p ON p.user_id = u.id
-    WHERE u.id = ${id}
+    WHERE u.id = ?
     GROUP BY u.id`,
-    (err, rows) => res.status(200).json(rows)
+    [id]
   );
+
+  return res.status(200).json(rows);
 });
 
 app.get('/posts', (req, res, next) => {
@@ -86,7 +96,7 @@ app.get('/posts', (req, res, next) => {
         users.id as userId,
         users.profile_image as userProfileImage,
         posts.id as postingId,
-        posts.post_image as postingImageUrl,
+        posts.post_image_url as postingImageUrl,
         posts.content as postingContent
       FROM posts
       INNER JOIN users ON posts.user_id = users.id`,
@@ -96,6 +106,46 @@ app.get('/posts', (req, res, next) => {
       });
     }
   );
+});
+
+app.post('/likes', async (req, res) => {
+  const { userId, postId } = req.body;
+  await myDataSource.query(
+    `INSERT INTO
+      likes (user_id, post_id)
+    VALUES (?, ?)`,
+    [userId, postId]
+  );
+
+  return res.status(201).json({ message: 'likeCreated' });
+});
+
+app.patch('/posts', async (req, res) => {
+  const { id, content, userId } = req.body;
+  const result = await myDataSource.query(
+    `UPDATE posts
+      SET
+        content = ?
+      WHERE id = ? and userId = ?
+      `,
+    [content, id, userId]
+  );
+  return res.status(201).json({
+    message: 'success',
+    affectedRows: result.affectedRows,
+  });
+});
+
+app.delete('/posts/:postId', async (req, res) => {
+  const { postId } = req.params;
+  await myDataSource.query(
+    `
+    DELETE FROM posts
+    WHERE posts.id = ?`,
+    [postId]
+  );
+
+  return res.status(200).json({ message: 'postingDeleted' });
 });
 
 const server = http.createServer(app);
