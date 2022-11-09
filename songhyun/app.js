@@ -7,7 +7,7 @@ dotenv.config();
 import { DataSource } from "typeorm";
 import bcrypt from "bcrypt";
 
-const myDataSource = new DataSource({
+const appDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
   host: process.env.TYPEORM_HOST,
   port: process.env.TYPEORM_PORT,
@@ -16,7 +16,7 @@ const myDataSource = new DataSource({
   database: process.env.TYPEORM_DATABASE,
 });
 
-myDataSource.initialize().then(() => {
+appDataSource.initialize().then(() => {
   console.log("db conneted");
 });
 
@@ -37,7 +37,7 @@ app.post("/join", async (req, res) => {
   };
 
   const hash = await makeHash(password, 5);
-  await myDataSource.query(
+  await appDataSource.query(
     `INSERT INTO users(
       name,
       password,
@@ -47,6 +47,20 @@ app.post("/join", async (req, res) => {
     [name, hash, email]
   );
   res.status(201).json({ message: "user created" });
+});
+
+app.post("/post", async (req, res) => {
+  const { title, content, user_id } = req.body;
+
+  await appDataSource.query(
+    `INSERT INTO posts(
+      title,
+      content,
+      user_id
+    ) VALUES (?, ?, ?);`,
+    [title, content, user_id]
+  );
+  res.status(201).json({ message: "postCreated" });
 });
 
 const server = http.createServer(app);
