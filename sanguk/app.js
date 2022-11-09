@@ -46,15 +46,15 @@ app.post("/users/signup", async (req,res,next)=>{
 })
 
 app.post("/posts", async (req,res,next)=>{
-    const {postingId, postingImageUrl, postingContent} =req.body
+    const {postingId, Image_Url, Content} =req.body
 
     await myDataSource.query(
         `INSERT INTO posts(
             postingId,
-            postingImageUrl,
-            postingContent
+            Image_Url,
+            Content
         ) VALUES(?, ?, ?)`
-        ,[postingId, postingImageUrl, postingContent]
+        ,[postingId, Image_Url, Content]
     )
     res.status(201).json({message : "postCreated"})
 })
@@ -65,8 +65,8 @@ app.get ('/posts',async (req,res)=>{
         users.id as userId,
         users.userProfileImage,
         posts.postingId,
-        posts.postingImageUrl,
-        posts.postingContent
+        posts.Image_Url,
+        posts.Content
         FROM users
         LEFT JOIN posts ON users.id=postingId
 `
@@ -89,8 +89,8 @@ app.get ('/users/:userId/posts',async (req,res)=>{
             JSON_ARRAYAGG(
                 JSON_OBJECT(
                     "postingId", postingId,
-                    "postingImageUrl", postingImageUrl,
-                    "postingContent", postingContent
+                    "postingImageUrl", Image_Url,
+                    "postingContent", Content
                 )
             )as postings
             FROM posts
