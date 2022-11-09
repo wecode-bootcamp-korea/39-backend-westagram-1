@@ -5,6 +5,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 dotenv.config();
 import { DataSource } from "typeorm";
+import bcrypt from "bcrypt";
 
 const appDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -31,7 +32,11 @@ app.get("/ping", (req, res) => {
 
 app.post("/join", async (req, res) => {
   const { name, password, email } = req.body;
+  const makeHash = async (unHashedPassword, saltRounds) => {
+    return await bcrypt.hash(unHashedPassword, saltRounds);
+  };
 
+  const hash = await makeHash(password, 5);
   await appDataSource.query(
     `INSERT INTO users(
       name,
@@ -39,7 +44,7 @@ app.post("/join", async (req, res) => {
       email
     ) VALUES (?, ?, ?);
     `,
-    [name, password, email]
+    [name, hash, email]
   );
   res.status(201).json({ message: "user created" });
 });
