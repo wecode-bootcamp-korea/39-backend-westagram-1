@@ -50,6 +50,29 @@ app.post("/join", async (req, res) => {
   res.status(201).json({ message: "user created" });
 });
 
+app.post("/login", async (req, res) => {
+  const { name, password } = req.body;
+
+  const hashedPassword = await myDataSource.query(
+    `SELECT 
+      users.password,
+      users.id
+    FROM users
+    WHERE users.name="${name}";
+    `
+  );
+  const dbPassword = hashedPassword[0].password;
+  const userId = hashedPassword[0].id;
+  const check = await bcrypt.compare(password, dbPassword);
+  if (!check) {
+    res.json({ message: "Invalid User" });
+  }
+
+  const send = { userId: userId };
+  const jwtToken = jwt.sign(send, process.env.secretKey);
+  res.json({ accessToken: jwtToken });
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
