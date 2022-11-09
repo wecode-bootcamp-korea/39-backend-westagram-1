@@ -4,7 +4,6 @@ const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 const { DataSource } = require("typeorm");
-
 dotenv.config();
 
 const appDataSource = new DataSource({
@@ -75,11 +74,8 @@ app.get("/userPost/:userId", async (req, res) => {
     `,
     [userId]
   );
-  const result = userPost.map((userPost) => ({
-    ...userPost,
-    postings: JSON.parse(userPost.postings),
-  }));
-  res.status(200).json({ data: result });
+  console.log(userPost);
+  res.status(200).json({ data: userPost });
 });
 
 //회원가입
