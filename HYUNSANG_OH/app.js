@@ -80,13 +80,25 @@ app.get("/userPost/:userId", async (req, res) => {
     `,
     [userId]
   );
-  console.log(userPost);
   res.status(200).json({ data: userPost });
 });
 
 //회원가입
 app.post("/signup", async (req, res, next) => {
   const { name, email, password, profile_image } = req.body;
+
+  const [check] = await appDataSource.query(
+    `
+    SELECT EXISTS
+    (SELECT * FROM users
+    WHERE email = ?)
+    AS 'user';
+    `,
+    [email]
+  );
+  if (check.user == 1) {
+    return res.status(409).json({ message: "Email is already Existed" });
+  }
 
   const makeHash = async (password, saltRounds) => {
     return await bcrypt.hash(password, saltRounds);
@@ -113,7 +125,7 @@ app.post("/signup", async (req, res, next) => {
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const validity = await appDataSource.query(
+  const [user] = await appDataSource.query(
     `
     SELECT 
         id,
@@ -123,18 +135,16 @@ app.post("/login", async (req, res) => {
     `,
     [email]
   );
-  console.log(validity);
   try {
-    const hashedPassword = validity[0].pw;
+    const hashedPassword = user.pw;
 
     const check = await bcrypt.compare(password, hashedPassword);
 
     if (check === true) {
       const payLoad = {
         email: email,
-        id: validity[0].id,
+        id: user.id,
       };
-      console.log(payLoad);
       const jwtToken = jwt.sign(payLoad, secretKey);
 
       return res.status(200).json({ accessToken: jwtToken });
