@@ -80,10 +80,13 @@ app.post('/login', async (req, res, next) => {
   const secretKey = 'mySecretKey';
   const jwtToken = jwt.sign(payLoad, secretKey);
 
-  await bcrypt
-    .compare(password, user.password)
-    .then(() => res.status(200).json({ accessToken: `${jwtToken}` }))
-    .catch((err) => res.status(404).json({ message: 'Invalid User' }));
+  bcrypt.compare(password, user.password).then((isSame) => {
+    if (isSame) {
+      res.status(200).json({ accessToken: `${jwtToken}` });
+    } else {
+      res.status(404).json({ message: 'Invalid user' });
+    }
+  });
 });
 
 app.post('/posts', (req, res, next) => {
