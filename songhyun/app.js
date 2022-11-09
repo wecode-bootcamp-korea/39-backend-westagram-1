@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { DataSource } from "typeorm";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const myDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
