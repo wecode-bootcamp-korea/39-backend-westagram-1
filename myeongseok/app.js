@@ -39,9 +39,8 @@ app.get('/ping', (req, res, next) => {
 
 app.post('/users/signup', async (req, res, next) => {
   const { name, email, profileImage, password } = req.body;
-  const saltRounds = 12;
-
-  const hash = await bcrypt.hash(password, saltRounds);
+  const saltRounds = parseInt(process.env.SALT_ROUNDS);
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   await myDataSource.query(
     `INSERT INTO users(
@@ -51,59 +50,74 @@ app.post('/users/signup', async (req, res, next) => {
       password
     ) VALUES (?, ?, ?, ?);
     `,
-    [name, email, profileImage, hash]
+    [name, email, profileImage, hashedPassword]
   );
 
   return res.status(201).json({ message: 'userCreated' });
 });
 
 app.post('/login', async (req, res, next) => {
-  const { name, password } = req.body;
+  const { email, password } = req.body;
   const [user] = await myDataSource.query(
     `SELECT
       id,
+      email,
       password
     FROM users
-    WHERE name = ?`,
-    [name]
+    WHERE email = ?`,
+    [email]
   );
+
   const now = new Date();
-  const payLoad = {
-    iss: 'admin',
-    sub: 'loginJwtToken',
-    exp: now.setDate(now.getDate() + 1),
-    aud: name,
-    iat: now.getTime(),
-    user_id: user.id,
-  };
+  const payLoad =
+    user === undefined
+      ? undefined
+      : {
+          iss: 'admin',
+          sub: 'loginJwtToken',
+          exp: now.setDate(now.getDate() + 1),
+          user_id: user.id,
+        };
 
-  const secretKey = 'mySecretKey';
-  const jwtToken = jwt.sign(payLoad, secretKey);
+  const secretKey = process.env.SECRET_KEY;
 
-  bcrypt.compare(password, user.password).then((isSame) => {
-    if (isSame) {
-      res.status(200).json({ accessToken: `${jwtToken}` });
-    } else {
-      res.status(404).json({ message: 'Invalid user' });
+  if (typeof payLoad === 'undefined') {
+    res.status(404).json({ message: 'Invalid Email' });
+  } else {
+    if (user.id) {
+      const jwtToken = jwt.sign(payLoad, secretKey);
+      bcrypt.compare(password, user.password).then((isSame) => {
+        if (isSame) {
+          res.status(200).json({ accessToken: `${jwtToken}` });
+        } else {
+          res.status(404).json({ message: 'Invalid Password' });
+        }
+      });
     }
-  });
+  }
 });
 
-app.post('/posts', (req, res, next) => {
+app.post('/posts', async (req, res, next) => {
   const { title, postImageUrl, content, userId } = req.body;
+  const token = req.header('Authorization');
+  const secretKey = process.env.SECRET_KEY;
+  const payLoad = jwt.verify(token, secretKey);
 
-  myDataSource.query(
-    `INSERT INTO posts(
+  if (payLoad.user_id === userId) {
+    await myDataSource.query(
+      `INSERT INTO posts(
       title,
       post_image_url,
       content,
       user_id
     ) VALUES (?, ?, ?, ?);
     `,
-    [title, postImageUrl, content, userId]
-  );
-
-  return res.status(201).json({ message: 'postCreated' });
+      [title, postImageUrl, content, userId]
+    );
+    return res.status(201).json({ message: 'postCreated' });
+  } else {
+    return res.status(404).json({ message: 'Invalid Access Token' });
+  }
 });
 
 app.get('/posts/userId/:id', async (req, res) => {
