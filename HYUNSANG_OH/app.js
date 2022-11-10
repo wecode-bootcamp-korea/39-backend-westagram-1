@@ -9,8 +9,8 @@ const jwt = require("jsonwebtoken");
 dotenv.config();
 
 //암호화 관련 코드
-const secretKey = process.env.secretKey;
-const saltRounds = 12;
+const secretKey = process.env.SECRET_KEY;
+const saltRounds = process.env.SALT_ROUNDS;
 
 const appDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -96,7 +96,7 @@ app.post("/signup", async (req, res, next) => {
     `,
     [email]
   );
-  if (check.user == 1) {
+  if (check.user) {
     return res.status(409).json({ message: "Email is already Existed" });
   }
 
@@ -135,14 +135,17 @@ app.post("/login", async (req, res) => {
     `,
     [email]
   );
+  if (!user) {
+    return res.status(401).json({ message: "Invalid Email" });
+  }
+
   try {
     const hashedPassword = user.pw;
 
     const check = await bcrypt.compare(password, hashedPassword);
 
-    if (check === true) {
+    if (check) {
       const payLoad = {
-        email: email,
         id: user.id,
       };
       const jwtToken = jwt.sign(payLoad, secretKey);
@@ -281,7 +284,7 @@ app.delete("/post/:userId", async (req, res, next) => {
       `,
       [userId, postId]
     );
-    res.status(200).json({ message: "postingDeleted" });
+    res.status(204).json({ message: "postingDeleted" });
   } else {
     res.status(404).json({ message: "Non Existing Post" });
   }
