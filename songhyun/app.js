@@ -73,6 +73,27 @@ app.post("/login", async (req, res) => {
   res.json({ accessToken: jwtToken });
 });
 
+app.post("/post", async (req, res) => {
+  const { title, content } = req.body;
+  const token = req.headers.token;
+  try {
+    const decoded = jwt.verify(token, process.env.secretKey);
+    if (decoded) {
+      await myDataSource.query(
+        `INSERT INTO posts(
+          title,
+          content,
+          user_id
+        ) VALUES (?, ?, ?);`,
+        [title, content, decoded.userId]
+      );
+      res.status(201).json({ message: "postCreated" });
+    }
+  } catch (err) {
+    res.status(401).json({ message: "Invalid Access Token" });
+  }
+});
+
 const server = http.createServer(app);
 const PORT = process.env.PORT;
 
