@@ -41,19 +41,21 @@ app.post('/users/signup', async (req, res, next) => {
   const { name, email, profileImage, password } = req.body;
   const saltRounds = parseInt(process.env.SALT_ROUNDS);
   const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-  await myDataSource.query(
-    `INSERT INTO users(
-      name,
-      email,
-      profile_image,
-      password
-    ) VALUES (?, ?, ?, ?);
-    `,
-    [name, email, profileImage, hashedPassword]
-  );
-
-  return res.status(201).json({ message: 'userCreated' });
+  if (name && email && profileImage && password) {
+    await myDataSource.query(
+      `INSERT INTO users(
+        name,
+        email,
+        profile_image,
+        password
+      ) VALUES (?, ?, ?, ?);
+      `,
+      [name, email, profileImage, hashedPassword]
+    );
+    return res.status(201).json({ message: 'userCreated' });
+  } else {
+    return res.status(400).json({ message: 'input all your info' });
+  }
 });
 
 app.post('/login', async (req, res, next) => {
@@ -82,7 +84,7 @@ app.post('/login', async (req, res, next) => {
   const secretKey = process.env.SECRET_KEY;
 
   if (typeof payLoad === 'undefined') {
-    res.status(404).json({ message: 'Invalid Email' });
+    res.status(400).json({ message: 'Invalid Email' });
   } else {
     if (user.id) {
       const jwtToken = jwt.sign(payLoad, secretKey);
@@ -90,7 +92,7 @@ app.post('/login', async (req, res, next) => {
         if (isSame) {
           res.status(200).json({ accessToken: `${jwtToken}` });
         } else {
-          res.status(404).json({ message: 'Invalid Password' });
+          res.status(400).json({ message: 'Invalid Password' });
         }
       });
     }
@@ -116,7 +118,7 @@ app.post('/posts', async (req, res, next) => {
     );
     return res.status(201).json({ message: 'postCreated' });
   } else {
-    return res.status(404).json({ message: 'Invalid Access Token' });
+    return res.status(400).json({ message: 'Invalid Access Token' });
   }
 });
 
