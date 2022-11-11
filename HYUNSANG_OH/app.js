@@ -4,8 +4,13 @@ const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 const { DataSource } = require("typeorm");
-
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 dotenv.config();
+
+//암호화 관련 코드
+const secretKey = process.env.SECRET_KEY;
+const saltRounds = process.env.SALT_ROUNDS;
 
 const appDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -75,35 +80,93 @@ app.get("/userPost/:userId", async (req, res) => {
     `,
     [userId]
   );
-  const result = userPost.map((userPost) => ({
-    ...userPost,
-    postings: JSON.parse(userPost.postings),
-  }));
-  res.status(200).json({ data: result });
+  res.status(200).json({ data: userPost });
 });
 
 //회원가입
 app.post("/signup", async (req, res, next) => {
   const { name, email, password, profile_image } = req.body;
+
+  const [check] = await appDataSource.query(
+    `
+    SELECT EXISTS
+    (SELECT * FROM users
+    WHERE email = ?)
+    AS 'user';
+    `,
+    [email]
+  );
+  if (check.user) {
+    return res.status(409).json({ message: "Email is already Existed" });
+  }
+
+  const makeHash = async (password, saltRounds) => {
+    return await bcrypt.hash(password, saltRounds);
+  };
+
+  const hashPassword = await makeHash(password, saltRounds);
+
   await appDataSource.query(
     `
-    INSERT INTO users(
-      user_name,
-      email,
-      user_password,
-      profile_image
-    ) VALUES (?, ?, ?, ?);
-    `,
-    [name, email, password, profile_image]
+      INSERT INTO users(
+        user_name,
+        email,
+        user_password,
+        profile_image
+      ) VALUES (?, ?, ?, ?);
+      `,
+    [name, email, hashPassword, profile_image]
   );
-  res.status(201).json({ message: "userCreated" });
+
+  return res.status(201).json({ message: "userCreated" });
+});
+
+//로그인
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  const [user] = await appDataSource.query(
+    `
+    SELECT 
+        id,
+        user_password AS pw
+    FROM users
+    WHERE email = ?;
+    `,
+    [email]
+  );
+  if (!user) {
+    return res.status(401).json({ message: "Invalid Email" });
+  }
+
+  try {
+    const hashedPassword = user.pw;
+
+    const check = await bcrypt.compare(password, hashedPassword);
+
+    if (check) {
+      const payLoad = {
+        id: user.id,
+      };
+      const jwtToken = jwt.sign(payLoad, secretKey);
+
+      return res.status(200).json({ accessToken: jwtToken });
+    } else {
+      return res.status(401).json({ message: "Invalid Password" });
+    }
+  } catch (error) {
+    return res.status(401).json({ message: "Invalid Email" });
+  }
 });
 
 //게시글 작성
 app.post("/post", async (req, res, next) => {
-  const { title, content, image_url, user_id } = req.body;
-  await appDataSource.query(
-    `
+  const { title, content, image_url } = req.body;
+  try {
+    const verification = await jwt.verify(req.headers.authorization, secretKey);
+    const userId = verification.id;
+    await appDataSource.query(
+      `
     INSERT INTO posts(
       title,
       content,
@@ -111,9 +174,12 @@ app.post("/post", async (req, res, next) => {
       user_id
     ) VALUES (?, ?, ?, ?);
     `,
-    [title, content, image_url, user_id]
-  );
-  res.status(201).json({ message: "postCreated" });
+      [title, content, image_url, userId]
+    );
+    return res.status(201).json({ message: "postCreated" });
+  } catch (err) {
+    return res.status(401).json({ messsage: "Invalid Token" });
+  }
 });
 
 //좋아요 누르기
@@ -218,7 +284,7 @@ app.delete("/post/:userId", async (req, res, next) => {
       `,
       [userId, postId]
     );
-    res.status(200).json({ message: "postingDeleted" });
+    res.status(204).json({ message: "postingDeleted" });
   } else {
     res.status(404).json({ message: "Non Existing Post" });
   }
