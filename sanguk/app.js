@@ -33,18 +33,75 @@ app.get("/ping", (req,res)=>{
 })
 
 app.post("/users/signup", async (req,res,next)=>{
-    const {username, password, email, phonenumber } =req.body
+    const {username, userProfileImage } =req.body
 
     await myDataSource.query(
         `INSERT INTO users(
             username,
-            password,
-            email,
-            phonenumber
-        ) VALUES(?, ?, ?, ?)`
-        ,[username, password, email, phonenumber]
+            userProfileImage
+        ) VALUES(?, ?)`
+        ,[username, userProfileImage]
     )
     res.status(201).json({message : "userCreated"})
+})
+
+app.post("/posts", async (req,res,next)=>{
+    const {postingId, Image_Url, Content} =req.body
+
+    await myDataSource.query(
+        `INSERT INTO posts(
+            postingId,
+            Image_Url,
+            Content
+        ) VALUES(?, ?, ?)`
+        ,[postingId, Image_Url, Content]
+    )
+    res.status(201).json({message : "postCreated"})
+})
+
+app.get ('/posts',async (req,res)=>{
+    await myDataSource.manager.query(    
+    `SELECT
+        users.id as userId,
+        users.userProfileImage,
+        posts.postingId,
+        posts.Image_Url,
+        posts.Content
+        FROM users
+        LEFT JOIN posts ON users.id=postingId
+`
+        ,(err, rows)=>{
+            res.status(200).json({data:rows});
+        }
+    )
+})
+
+app.get ('/users/:userId/posts',async (req,res)=>{
+    const {userId} = req.params
+    await myDataSource.manager.query(    
+    `SELECT
+        users.id as userId, users.userProfileImage,
+        pi.postings
+        FROM users
+        LEFT JOIN(
+            SELECT
+            userId,
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    "postingId", postingId,
+                    "postingImageUrl", Image_Url,
+                    "postingContent", Content
+                )
+            )as postings
+            FROM posts
+            GROUP BY userId 
+        ) pi ON users.id = pi.userId
+        WHERE users.id = ${userId};
+        `
+        ,(err, rows)=>{
+            res.status(200).json({data:rows});
+        }
+    )
 })
 
 const server = http.createServer(app)
