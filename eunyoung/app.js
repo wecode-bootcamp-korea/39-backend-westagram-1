@@ -22,7 +22,6 @@ myDataSource.initialize()
     })
     .catch((err) => {
         console.error("Error During Data Source Initialization", err)
-    myDataSource.destroy()
     })
 
 const app = express()
@@ -32,11 +31,12 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
+// Health check
 app.get("/ping", (req, res) => {
     res.status(201).json({ message : "pong" })
 });
 
-
+// 회원가입
 app.post("/users/signup", async (req, res, next) => {
     const { password, name, email, userImg } = req.body
     
@@ -46,7 +46,7 @@ app.post("/users/signup", async (req, res, next) => {
             name,
             email,
             userImg
-            ) VALUES (?, ?, ?, ?);
+        ) VALUES (?, ?, ?, ?);
         `,
         [ password, name, email, userImg ]
     );
@@ -54,6 +54,7 @@ app.post("/users/signup", async (req, res, next) => {
     res.status(201).json({ "message" : "userCreated!" });
 })
 
+// 게시글 등록
 app.post("/posts", async (req, res, next) => {
     const { title, content, contentImg, userId } = req.body
 
@@ -71,22 +72,108 @@ app.post("/posts", async (req, res, next) => {
     res.status(201).json({ "message" : "postCreated!" });
 })
 
-app.get("/posts", async (req, res, next) => {
+// 전체 게시글 조회
+app.get("/posts/all", async (req, res, next) => {
     const postData = 
     await myDataSource.query(
         `SELECT
             users.id AS userId,
             users.userImg AS userProfileImage,
+            posts.userId AS postingId,
+            posts.contentImg AS postingImageUrl,
+            posts.content AS postingContent
+        FROM
+            users
+        INNER JOIN
+            posts ON posts.userId = users.id   
+        `
+    );
+    res.status(200).json({ data: postData });
+})
+
+// 유저게시글 조회
+app.get("/posts/user/:userId", async (req, res) => {
+    const userId = req.params.userId;
+
+    const userData =
+    await myDataSource.query(
+        `SELECT
+            users.id AS userId,
+            users.userImg AS userProfileImage
+        FROM
+            users
+        WHERE
+            users.id = ${userId}
+        `
+    );
+    const postData =
+    await myDataSource.query(
+        `SELECT
             posts.id AS postingId,
-            posts.contentImg as postingImageUrl,
+            posts.contentImg AS postingImageUrl,
             posts.content AS postingContent
         FROM
             posts
         INNER JOIN
-            users ON posts.userId = users.id;
+            users ON users.id = posts.userId
+        WHERE
+            users.id = ${userId}
+        `,
+    );
+    userData[0].postingData = postData
+    res.status(200).json({ data: userData })
+})
+
+// 게시글 수정
+app.put("/posts", async (req, res) => {
+    const { title, content, contentImg, id } = req.body
+
+    await myDataSource.query(
+        `UPDATE
+            posts
+        SET
+            title = ?,
+            content = ?,
+            contentImg = ?
+        WHERE
+            id = ?
+        `,
+        [ title, content, contentImg, id ]
+    );
+    res.status(200).json({ "message" : "successfully updated!" })
+})
+
+// 게시글 삭제
+app.delete("/posts/:postId", async(req, res) => {
+    const { postId } = req.params;
+
+    await myDataSource.query(
+        `DELETE FROM
+            posts
+        WHERE
+            posts.id = ${postId}
         `
     );
-    res.status(200).json({ data: postData });
+    res.status(201).json({ "message" : "successfully deleted!" })
+})
+
+// 좋아요 누르기
+app.post("/likes", async (req, res) => {
+    const { userId, postId } = req.body
+
+    await myDataSource.query(
+        `SELECT
+            id,
+            userId,
+            postId
+        FROM
+            likes
+        WHERE
+            userId = ? and postId = ?
+        `,
+        [ userId, postId ]
+    );
+    res.status(201).json({ "message" : "likeCreated!" })
 })
 
 const start = async () => {
