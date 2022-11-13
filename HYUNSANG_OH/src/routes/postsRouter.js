@@ -6,17 +6,14 @@ const postsRouter = express.Router();
 const postsController = require("../controllers/postsController");
 const validity = require("../middlewares/token");
 
-postsRouter.post(
-  "/createpost",
+postsRouter.post("/new", validity.validToken, postsController.createPost);
+postsRouter.get("/", postsController.posts);
+postsRouter.get("/:userId", postsController.postsByUser);
+postsRouter.delete("/:postId", validity.validToken, postsController.deletePost);
+postsRouter.patch(
+  "/edit/:postId",
   validity.validToken,
-  postsController.createPost
-);
-postsRouter.get("/posts", postsController.posts);
-postsRouter.get("/posts/:userId", postsController.postsByUser);
-postsRouter.delete(
-  "/posts/:userId",
-  validity.validToken,
-  postsController.deletePost
+  postsController.editPost
 );
 
 module.exports = { postsRouter };

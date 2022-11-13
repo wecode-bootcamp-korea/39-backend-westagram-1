@@ -221,48 +221,48 @@ app.post("/likes", async (req, res, next) => {
 });
 
 //게시글 수정
-app.patch("/post/:postId", async (req, res, next) => {
-  const { postId } = req.params;
-  const { title, content, image_url } = req.body;
-  const checkExisted = await appDataSource.query(
-    `
-      SELECT EXISTS
-      (SELECT * FROM posts
-      WHERE id = ?)
-      AS postExist
-      `,
-    [postId]
-  );
-  if (checkExisted[0].postExist == 1) {
-    await appDataSource.query(
-      `
-        UPDATE posts SET
-          title = ?,
-          content = ?,
-          image_url = ?
-        WHERE posts.id = ?
-        `,
-      [title, content, image_url, postId]
-    );
-  } else {
-    res.status(404).json({ message: "Non Existing Post" });
-  }
-  const editedPost = await appDataSource.query(
-    `
-      SELECT
-        users.id as userId,
-        users.user_name as userName,
-        posts.id as postingId,
-        posts.title as postingTitle,
-        posts.content as postingContent
-      FROM users
-      JOIN posts ON users.id = posts.user_id
-      WHERE posts.id = ?
-      `,
-    [postId]
-  );
-  res.status(201).json({ data: editedPost });
-});
+// app.patch("/post/:postId", async (req, res, next) => {
+//   const { postId } = req.params;
+//   const { title, content, image_url } = req.body;
+//   const checkExisted = await appDataSource.query(
+//     `
+//       SELECT EXISTS
+//       (SELECT * FROM posts
+//       WHERE id = ?)
+//       AS postExist
+//       `,
+//     [postId]
+//   );
+//   if (checkExisted[0].postExist == 1) {
+//     await appDataSource.query(
+//       `
+//         UPDATE posts SET
+//           title = ?,
+//           content = ?,
+//           image_url = ?
+//         WHERE posts.id = ?
+//         `,
+//       [title, content, image_url, postId]
+//     );
+//   } else {
+//     res.status(404).json({ message: "Non Existing Post" });
+//   }
+//   const editedPost = await appDataSource.query(
+//     `
+//       SELECT
+//         users.id as userId,
+//         users.user_name as userName,
+//         posts.id as postingId,
+//         posts.title as postingTitle,
+//         posts.content as postingContent
+//       FROM users
+//       JOIN posts ON users.id = posts.user_id
+//       WHERE posts.id = ?
+//       `,
+//     [postId]
+//   );
+//   res.status(201).json({ data: editedPost });
+// });
 
 //게시글 삭제
 // app.delete("/post/:userId", async (req, res, next) => {

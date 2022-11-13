@@ -16,11 +16,21 @@ const postsByUser = async (userId) => {
   return postsByUser;
 };
 
-const deletePost = async (userId, postId) => {
-  const checkPost = await postsDao.checkPost(postId);
-  console.log(checkPost);
-  const deletePost = await postsDao.deletePost(userId, postId);
-  return deletePost;
+const deletePost = async (postId) => {
+  return await postsDao.deletePost(postId);
 };
 
-module.exports = { createPost, posts, postsByUser, deletePost };
+const editPost = async (postId, title, content, image_url) => {
+  const check = await postsDao.checkPost(postId);
+
+  if (check[0].postExist == 1) {
+    await postsDao.edit(postId, title, content, image_url);
+  } else {
+    return res.status(404).json({ message: "Non Existing Post" });
+  }
+
+  const editedPost = await postsDao.editedPost(postId);
+  return editedPost;
+};
+
+module.exports = { createPost, posts, postsByUser, deletePost, editPost };

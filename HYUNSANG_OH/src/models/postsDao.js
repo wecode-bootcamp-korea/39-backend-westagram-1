@@ -25,7 +25,7 @@ const posts = async () => {
     SELECT
       u.id as userId,
       u.profile_image as userProfileImage,
-      p.user_id as postingId,
+      p.id as postingId,
       p.image_url as postingImageUrl,
       p.content as postingContent
     FROM users u
@@ -65,37 +65,72 @@ const postsByUser = async (userId) => {
   }
 };
 
-const checkPost = async (postId) => {
+const deletePost = async (postId) => {
   try {
-    const userPost = await appDataSource.query(
-      `
-      SELECT EXISTS
-      (SELECT * FROM posts
-      WHERE id = ?)
-      AS postExist
+    await appDataSource.query(
+      `DELETE FROM posts
+      WHERE id = ?;
       `,
       [postId]
     );
-    return userPost;
-    console.log(userPost); ////////
   } catch (err) {
-    return res.status(404).json({ message: "Non Existing Post" });
+    const error = new Error("INVALID_DATA_INPUT");
+    error.statusCode = 500;
+    throw error;
   }
 };
 
-const deletePost = async (userId, postId) => {
-  try {
-    const deletePost = await appDataSource.query(
-      `
-        DELETE
-        FROM posts
-        WHERE posts.user_id = ? and posts.id = ?
+const checkPost = async (postId) => {
+  const check = await appDataSource.query(
+    `
+    SELECT EXISTS
+    (SELECT * FROM posts
+    WHERE id = ?)
+    AS postExist
+    `,
+    [postId]
+  );
+  console.log(check);
+  return check;
+};
+
+const edit = async (postId, title, content, image_url) => {
+  await appDataSource.query(
+    `
+      UPDATE posts SET
+        title = ?,
+        content = ?,
+        image_url = ?
+      WHERE posts.id = ?
       `,
-      [userId, postId]
-    );
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
+    [title, content, image_url, postId]
+  );
 };
 
-module.exports = { creatingPost, posts, postsByUser, checkPost, deletePost };
+const editedPost = async (postId) => {
+  const edited = await appDataSource.query(
+    `
+    SELECT
+      users.id as userId,
+      users.user_name as userName,
+      posts.id as postingId,
+      posts.title as postingTitle,
+      posts.content as postingContent
+    FROM users
+    JOIN posts ON users.id = posts.user_id
+    WHERE posts.id = ?
+    `,
+    [postId]
+  );
+  return edited;
+};
+
+module.exports = {
+  creatingPost,
+  posts,
+  postsByUser,
+  deletePost,
+  checkPost,
+  edit,
+  editedPost,
+};
