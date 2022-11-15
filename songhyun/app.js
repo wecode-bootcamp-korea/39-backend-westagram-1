@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { DataSource } from "typeorm";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const myDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
@@ -50,19 +51,48 @@ app.post("/join", async (req, res) => {
   res.status(201).json({ message: "user created" });
 });
 
-app.post("/post", async (req, res) => {
-  const { title, content, userId } = req.body;
+app.post("/login", async (req, res) => {
+  const { name, password } = req.body;
 
-  await myDataSource.query(
-    `INSERT INTO posts(
-      title,
-      content,
-      user_id
-    ) VALUES (?, ?, ?);
-    `,
-    [title, content, userId]
+  const hashedPassword = await myDataSource.query(
+    `SELECT 
+      users.password,
+      users.id
+    FROM users
+    WHERE users.name="${name}";
+    `
   );
-  res.status(201).json({ message: "postCreated" });
+  const dbPassword = hashedPassword[0].password;
+  const userId = hashedPassword[0].id;
+  const check = await bcrypt.compare(password, dbPassword);
+  if (!check) {
+    res.json({ message: "Invalid User" });
+  }
+
+  const send = { userId: userId };
+  const jwtToken = jwt.sign(send, process.env.secretKey);
+  res.json({ accessToken: jwtToken });
+});
+
+app.post("/post", async (req, res) => {
+  const { title, content } = req.body;
+  const token = req.headers.token;
+  try {
+    const decoded = jwt.verify(token, process.env.secretKey);
+    if (decoded) {
+      await myDataSource.query(
+        `INSERT INTO posts(
+          title,
+          content,
+          user_id
+        ) VALUES (?, ?, ?);`,
+        [title, content, decoded.userId]
+      );
+      res.status(201).json({ message: "postCreated" });
+    }
+  } catch (err) {
+    res.status(401).json({ message: "Invalid Access Token" });
+  }
 });
 
 app.get("/posts", async (req, res) => {
