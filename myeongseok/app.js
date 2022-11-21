@@ -5,6 +5,7 @@ const morgan = require('morgan');
 
 const { AppDataSource } = require('./src/models/dataSource.js');
 const { routes } = require('./src/routes');
+const { asyncErrHandler } = require('./src/middlewares/errorHandlers');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(morgan('dev'));
 
 app.use(routes);
+// app.use(asyncErrHandler);
 
 const startServer = async () => {
   const PORT = process.env.PORT;
