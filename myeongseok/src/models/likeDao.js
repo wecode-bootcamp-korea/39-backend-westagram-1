@@ -1,4 +1,4 @@
-const { AppDataSource } = require('./data-source');
+const { AppDataSource } = require('./dataSource');
 
 const createLike = async (userId, postId) => {
   await AppDataSource.query(

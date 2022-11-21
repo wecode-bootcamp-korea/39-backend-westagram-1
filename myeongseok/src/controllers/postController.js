@@ -1,16 +1,15 @@
-const postService = require('../services/post.service');
+const postService = require('../services/postService');
 
 const addPost = async (req, res) => {
   try {
-    const { title, postImageUrl, content } = req.body;
-    const accessToken = req.header('Authorization');
-
+    const { title, postImageUrl, content, userId } = req.body;
+    console.log(userId);
     if (!title || !postImageUrl || !content) {
       return res
         .status(400)
         .json({ message: 'INPUT TITLE & POST IMAGE URL & CONTENT' });
     }
-    await postService.createPost(title, postImageUrl, content, accessToken);
+    await postService.createPost(title, postImageUrl, content, userId);
 
     return res.status(201).json({ message: 'POST CREATED' });
   } catch (err) {
@@ -27,9 +26,9 @@ const viewPosts = async (req, res) => {
 
 const viewUserPost = async (req, res) => {
   try {
-    const accessToken = req.header('Authorization');
+    const { userId } = req.body;
 
-    const userPost = await postService.readUserPost(accessToken);
+    const userPost = await postService.readUserPost(userId);
 
     return res.status(200).json({ data: userPost });
   } catch (err) {
@@ -39,16 +38,14 @@ const viewUserPost = async (req, res) => {
 
 const editUserPost = async (req, res) => {
   try {
-    const accessToken = req.header('Authorization');
-
-    const { id, title, postImageUrl, content } = req.body;
+    const { id, title, postImageUrl, content, userId } = req.body;
 
     const result = await postService.updateUserPost(
       id,
       title,
       postImageUrl,
       content,
-      accessToken
+      userId
     );
 
     return res.status(201).json({
@@ -62,11 +59,10 @@ const editUserPost = async (req, res) => {
 
 const removeUserPost = async (req, res) => {
   try {
-    const accessToken = req.header('Authorization');
-
     const { postId } = req.params;
+    const { userId } = req.body;
 
-    await postService.deleteUserPost(accessToken, postId);
+    await postService.deleteUserPost(userId, postId);
 
     return res.status(200).json({ message: 'POSTING DELETED' });
   } catch (err) {

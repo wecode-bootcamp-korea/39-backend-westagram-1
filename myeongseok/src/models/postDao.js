@@ -1,4 +1,4 @@
-const { AppDataSource } = require('./data-source');
+const { AppDataSource } = require('./dataSource');
 
 const createPost = async (title, postImageUrl, content, userId) => {
   await AppDataSource.query(

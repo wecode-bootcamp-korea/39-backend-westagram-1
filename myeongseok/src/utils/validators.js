@@ -12,19 +12,18 @@ const validateEmail = (email) => {
   }
 };
 
-const validateToken = (accessToken) => {
-  const secretKey = process.env.SECRET_KEY;
-  const payLoad = jwt.verify(accessToken, secretKey);
+// const validateToken = (accessToken) => {
+//   const secretKey = process.env.SECRET_KEY;
+//   const payLoad = jwt.verify(accessToken, secretKey);
 
-  if (!payLoad) {
-    const err = new Error('INVALID ACCESS TOKEN');
-    err.statusCode = 400;
-    throw err;
-  }
-  return payLoad.user_id;
-};
+//   if (!payLoad) {
+//     const err = new Error('INVALID ACCESS TOKEN');
+//     err.statusCode = 400;
+//     throw err;
+//   }
+//   return payLoad.user_id;
+// };
 
 module.exports = {
   validateEmail,
-  validateToken,
 };

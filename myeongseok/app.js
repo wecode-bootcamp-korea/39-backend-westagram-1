@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 
-const { AppDataSource } = require('./src/models/data-source.js');
+const { AppDataSource } = require('./src/models/dataSource.js');
 const { routes } = require('./src/routes');
 
 const app = express();

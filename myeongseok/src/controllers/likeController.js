@@ -1,12 +1,12 @@
-const likeService = require('../services/like.service');
+const likeService = require('../services/likeService');
 
 const addLike = async (req, res) => {
   try {
-    const accessToken = req.header('Authorization');
+    const userId = req.body.userId;
 
     const { postId } = req.body;
 
-    await likeService.createLike(accessToken, postId);
+    await likeService.createLike(userId, postId);
 
     res.status(201).json({ message: 'LIKE ADDED' });
   } catch (err) {
@@ -16,11 +16,10 @@ const addLike = async (req, res) => {
 
 const cancelLike = async (req, res) => {
   try {
-    const accessToken = req.header('Authorization');
-
     const { postId } = req.body;
+    const userId = req.body.userId;
 
-    await likeService.deleteLike(accessToken, postId);
+    await likeService.deleteLike(userId, postId);
 
     res.status(200).json({ message: 'LIKE CANCELED' });
   } catch (err) {

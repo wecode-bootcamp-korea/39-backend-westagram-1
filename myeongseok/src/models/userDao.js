@@ -1,4 +1,4 @@
-const { AppDataSource } = require('./data-source');
+const { AppDataSource } = require('./dataSource');
 
 const createUser = async (name, email, profileImage, password) => {
   await AppDataSource.query(
@@ -25,4 +25,18 @@ const getUserByEmail = async (email) => {
   return user;
 };
 
-module.exports = { createUser, getUserByEmail };
+const getUserByUserId = async (userId) => {
+  const user = await AppDataSource.query(
+    `SELECT
+    id,
+    name,
+    email,
+    profile_image
+    FROM users
+    WHERE users.id = ?`,
+    [userId]
+  );
+  return user;
+};
+
+module.exports = { createUser, getUserByEmail, getUserByUserId };

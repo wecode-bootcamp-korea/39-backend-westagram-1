@@ -1,12 +1,11 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const userDao = require('../models/user.dao');
+const userDao = require('../models/userDao');
 const { validateEmail } = require('../utils/validators');
 
 const signUp = async (name, email, profileImage, password) => {
   validateEmail(email);
-
   const user = await userDao.getUserByEmail(email);
 
   if (user) {
