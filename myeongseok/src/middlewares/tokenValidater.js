@@ -6,14 +6,15 @@ const validateAccessToken = async (req, res, next) => {
     const accessToken = req.header('Authorization');
     const secretKey = process.env.SECRET_KEY;
     const payLoad = jwt.verify(accessToken, secretKey);
-    const userId = payLoad['user_id'];
+    const userId = payLoad.userId;
 
     const [user] = await getUserByUserId(userId);
-    req.decoded = user.id;
 
-    if (!user) {
+    if (user.id !== userId) {
       return res.status(401).json('Invalid AccessToken');
     }
+
+    req.decoded = userId;
 
     next();
   } catch (err) {

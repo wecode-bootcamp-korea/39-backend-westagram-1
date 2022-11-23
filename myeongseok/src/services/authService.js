@@ -41,7 +41,7 @@ const signIn = async (email, password) => {
     iss: 'admin',
     sub: 'loginJwtToken',
     exp: now.setDate(now.getDate() + 1),
-    user_id: user.id,
+    userId: user.id,
   };
 
   const secretKey = process.env.SECRET_KEY;
